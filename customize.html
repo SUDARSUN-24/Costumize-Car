@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Velonix Configurator | Holographic Lab</title>
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3202/3202926.png" type="image/png">
+  
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Rajdhani:wght@400;500;600&display=swap');
+
+    :root {
+      --neon-color: #bc13fe; 
+      --neon-glow: rgba(188, 19, 254, 0.5);
+      --bg-dark: #050505;
+      --panel-bg: #0a0a0a;
+      --text-main: #ffffff;
+      --glass-bg: rgba(10, 10, 10, 0.9);
+      --border-color: #333;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+    
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      overflow-x: hidden;
+      font-family: 'Rajdhani', sans-serif;
+    }
+
+    h1, h2, h3, h4, .btn-primary, .stat-label, .price-tag {
+      font-family: 'Orbitron', sans-serif; 
+    }
+
+    header {
+      background: rgba(5, 5, 5, 0.95);
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--neon-color);
+      position: sticky; top: 0; z-index: 1000;
+      box-shadow: 0 5px 20px rgba(188, 19, 254, 0.2);
+    }
+    header h1 { color: var(--neon-color); font-size: 1.5rem; letter-spacing: 2px; text-shadow: 0 0 10px var(--neon-glow); }
+    .back-btn {
+        text-decoration: none; color: #fff; font-size: 0.9rem;
+        border: 1px solid #444; padding: 8px 15px; border-radius: 4px;
+        transition: .3s;
+    }
+    .back-btn:hover { border-color: var(--neon-color); color: var(--neon-color); box-shadow: 0 0 10px var(--neon-glow); }
+
+    .configurator-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        height: calc(100vh - 70px);
+        overflow: hidden;
+        background: radial-gradient(circle at 30% 50%, #1a1a1a 0%, #000 100%);
+    }
+
+    .preview-stage {
+        flex: 2;
+        min-width: 600px;
+        background: transparent;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    #canvas-container {
+        width: 100%;
+        height: 100%;
+        display: block;
+        cursor: move; 
+    }
+
+    .holo-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: linear-gradient(0deg, rgba(188, 19, 254, 0.05) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(188, 19, 254, 0.05) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none;
+        z-index: 5;
+    }
+    .scan-line {
+        position: absolute; top: 0; left: 0; width: 100%; height: 5px;
+        background: var(--neon-color);
+        box-shadow: 0 0 15px var(--neon-color);
+        opacity: 0.3;
+        animation: scan 6s linear infinite;
+        z-index: 6;
+        pointer-events: none;
+    }
+    @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
+
+    .controls-panel {
+        flex: 1;
+        min-width: 400px;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(10px);
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow-y: auto;
+        position: relative;
+        z-index: 10;
+    }
+
+    .panel-header {
+        padding: 20px;
+        border-bottom: 1px solid #333;
+        background: rgba(0, 0, 0, 0.5);
+    }
+    .total-price {
+        font-size: 2rem;
+        color: var(--neon-color);
+        text-shadow: 0 0 15px var(--neon-glow);
+        margin-top: 5px;
+    }
+
+    .control-section { border-bottom: 1px solid #333; }
+    .section-title {
+        padding: 15px 20px;
+        cursor: pointer;
+        font-family: 'Orbitron';
+        font-size: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        display: flex;
+        justify-content: space-between;
+        transition: .3s;
+        border-left: 3px solid transparent;
+    }
+    .section-title:hover { background: rgba(255, 255, 255, 0.1); color: var(--neon-color); border-left-color: var(--neon-color); }
+    
+    .options-grid {
+        padding: 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+        gap: 15px;
+        background: transparent;
+    }
+
+    .option-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid #333;
+        padding: 15px 10px;
+        text-align: center;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: .3s;
+    }
+    .option-card:hover { transform: translateY(-3px); border-color: #666; }
+    .option-card.active {
+        border-color: var(--neon-color);
+        box-shadow: 0 0 15px rgba(188, 19, 254, 0.2) inset;
+        background: rgba(188, 19, 254, 0.1);
+    }
+    .option-card i { font-size: 1.5rem; margin-bottom: 10px; color: #777; transition:.3s; }
+    .option-card.active i { color: var(--neon-color); text-shadow: 0 0 10px var(--neon-color); }
+    .option-name { font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 3px; }
+    .option-cost { font-size: 0.75rem; color: #888; display: block; }
+
+    .color-grid { display: flex; gap: 15px; flex-wrap: wrap; padding: 20px; }
+    .color-circle {
+        width: 40px; height: 40px; border-radius: 50%;
+        cursor: pointer; border: 2px solid #333;
+        transition: .3s; position: relative;
+    }
+    .color-circle.active { border-color: #fff; transform: scale(1.1); box-shadow: 0 0 15px currentColor; }
+
+    .stats-container {
+        position: absolute; bottom: 30px; left: 30px;
+        background: rgba(10, 10, 10, 0.8);
+        padding: 20px; border-radius: 4px;
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--neon-color);
+        width: 280px;
+        z-index: 20;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+    .stats-container h4 { color: var(--neon-color); margin-bottom: 15px; letter-spacing: 1px; }
+    .stat-row { margin-bottom: 8px; }
+    .stat-label { font-size: 0.8rem; color: #aaa; display: flex; justify-content: space-between; margin-bottom: 2px;}
+    .progress-bar {
+        height: 4px; background: #333; border-radius: 2px; overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%; background: var(--neon-color); width: 0%;
+        transition: width 0.5s ease;
+        box-shadow: 0 0 5px var(--neon-color);
+    }
+
+    .checkout-btn {
+        width: 100%; padding: 20px;
+        background: var(--neon-color); color: white;
+        border: none; font-family: 'Orbitron'; font-size: 1.2rem;
+        cursor: pointer; transition: .3s;
+        text-shadow: 0 0 5px rgba(0,0,0,0.5);
+    }
+    .checkout-btn:hover { background: #d900ff; letter-spacing: 1px; box-shadow: 0 0 20px var(--neon-color); }
+
+    @media (max-width: 900px) {
+        .configurator-wrapper { height: auto; flex-direction: column; }
+        .preview-stage { height: 50vh; }
+        .controls-panel { height: auto; }
+        .stats-container { bottom: 10px; left: 10px; width: calc(100% - 20px); }
+    }
+  </style>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+  <header>
+    <h1>Velonix Hologram Lab</h1>
+    <a href="garage.html" class="back-btn"><i class="fas fa-arrow-left"></i> Exit Lab</a>
+  </header>
+
+  <div class="configurator-wrapper">
+    <div class="preview-stage">
+      <div class="holo-overlay"></div>
+      <div class="scan-line"></div>
+      <div id="canvas-container"></div>
+      
+      <div class="stats-container">
+        <h4 id="modelNameDisplay">Analyzing...</h4>
+        <div class="stat-row">
+            <div class="stat-label"><span>Max Speed</span> <span id="statSpeedVal">0</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="barSpeed"></div></div>
+        </div>
+        <div class="stat-row">
+            <div class="stat-label"><span>Acceleration</span> <span id="statAccVal">0</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="barAcc"></div></div>
+        </div>
+        <div class="stat-row">
+            <div class="stat-label"><span>Handling</span> <span id="statHandVal">0</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="barHand"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls-panel">
+      <div class="panel-header">
+        <p style="color:#777; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Est. Build Cost</p>
+        <h2 class="total-price" id="totalPrice">$0</h2>
+      </div>
+
+      <div class="control-section">
+        <div class="section-title">1. Select Hologram Model</div>
+        <div class="options-grid" id="modelList"></div>
+      </div>
+
+      <div class="control-section">
+        <div class="section-title">2. Paint Calibration</div>
+        <div class="color-grid" id="colorList"></div>
+      </div>
+
+      <div class="control-section">
+        <div class="section-title">3. Wheel Systems</div>
+        <div class="options-grid" id="wheelList"></div>
+      </div>
+
+      <div class="control-section">
+        <div class="section-title">4. Power Core</div>
+        <div class="options-grid" id="engineList"></div>
+      </div>
+
+      <div style="margin-top:auto;">
+        <button class="checkout-btn" onclick="finishBuild()">INITIATE BUILD</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. DATA CONFIGURATION (ADDED BUS & TRUCK)
+    // ==========================================
+    const carModels = [
+        { 
+            id: 'spectre', name: 'Velonix Spectre', price: 85000, 
+            speed: 90, acc: 95, handling: 85, icon: 'fa-bolt',
+            specs: { l: 4.5, w: 2, h: 0.8, type: 'sport' }
+        },
+        { 
+            id: 'vortex', name: 'Apex Vortex', price: 250000, 
+            speed: 100, acc: 98, handling: 95, icon: 'fa-jet-fighter',
+            specs: { l: 4.8, w: 2.1, h: 0.7, type: 'hyper' }
+        },
+        { 
+            id: 'behemoth', name: 'Cyberdyne Behemoth', price: 110000, 
+            speed: 65, acc: 60, handling: 90, icon: 'fa-truck-monster',
+            specs: { l: 5, w: 2.2, h: 1.2, type: 'suv' }
+        },
+        { 
+            id: 'hauler', name: 'Cyber Hauler', price: 150000, 
+            speed: 60, acc: 40, handling: 70, icon: 'fa-trailer',
+            specs: { l: 6, w: 2.5, h: 2.5, type: 'semi' }
+        },
+        { 
+            id: 'bus', name: 'Neon Transit', price: 200000, 
+            speed: 50, acc: 30, handling: 60, icon: 'fa-bus',
+            specs: { l: 8, w: 2.6, h: 2.8, type: 'bus' }
+        },
+        { 
+            id: 'titan', name: 'Titan Edge Bike', price: 45000, 
+            speed: 95, acc: 92, handling: 98, icon: 'fa-motorcycle',
+            specs: { l: 2.5, w: 0.8, h: 1.0, type: 'bike' }
+        }
+    ];
+
+    const colors = [
+        { name: 'Neon Purple', hex: 0xbc13fe, price: 2000 },
+        { name: 'Plasma Red', hex: 0xff0f39, price: 2000 },
+        { name: 'Cyber Blue', hex: 0x00ffe0, price: 2000 },
+        { name: 'Toxic Green', hex: 0x39ff14, price: 2500 },
+        { name: 'Pure Gold', hex: 0xffd700, price: 10000 },
+        { name: 'Void Black', hex: 0x222222, price: 0 },
+        { name: 'Ice White', hex: 0xffffff, price: 1000 }
+    ];
+
+    const wheels = [
+        { id: 'stock', name: 'Stock Alloys', price: 0, icon: 'fa-circle' },
+        { id: 'turbine', name: 'Aero Turbines', price: 4000, icon: 'fa-radiation' },
+        { id: 'neon', name: 'Neon Gliders', price: 8000, icon: 'fa-bullseye' },
+        { id: 'spikes', name: 'Cyber Spikes', price: 6000, icon: 'fa-certificate' }, 
+        { id: 'disc', name: 'Solid Disc', price: 5000, icon: 'fa-compact-disc' } 
+    ];
+
+    const engines = [
+        { id: 'v8', name: 'V8 Fusion', price: 0, icon: 'fa-fire', boost: 0 },
+        { id: 'electric', name: 'Ion Drive', price: 15000, icon: 'fa-bolt', boost: 10 },
+        { id: 'antimatter', name: 'Dark Matter', price: 50000, icon: 'fa-atom', boost: 25 }
+    ];
+
+    let state = { model: carModels[0], color: colors[0], wheel: wheels[0], engine: engines[0] };
+
+    // ==========================================
+    // 2. THREE.JS 3D ENGINE
+    // ==========================================
+    let scene, camera, renderer, carGroup, controls;
+    let gridHelper; 
+
+    function initThreeJS() {
+        const container = document.getElementById('canvas-container');
+        
+        scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050505, 0.03);
+
+        camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 100);
+        camera.position.set(4, 3, 6);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 1.0;
+        controls.enablePan = false;
+
+        const gridColor = 0xbc13fe; 
+        gridHelper = new THREE.GridHelper(20, 20, gridColor, 0x222222);
+        scene.add(gridHelper);
+        
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        const pointLight = new THREE.PointLight(0xffffff, 0.8);
+        pointLight.position.set(5, 10, 5);
+        scene.add(pointLight);
+
+        buildCar3D();
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+    }
+
+    // --- PROCEDURAL BUILDER (HANDLES BIKE, BUS, TRUCK, CAR) ---
+    function buildCar3D() {
+        if (carGroup) scene.remove(carGroup);
+        
+        carGroup = new THREE.Group();
+        const specs = state.model.specs;
+        const paintColor = state.color.hex; 
+
+        // Materials
+        const glassMat = new THREE.MeshPhongMaterial({ 
+            color: paintColor, opacity: 0.5, transparent: true, shininess: 120, side: THREE.DoubleSide
+        });
+        const wireMat = new THREE.MeshBasicMaterial({ 
+            color: paintColor, wireframe: true, transparent: true, opacity: 0.4
+        });
+        const techMat = new THREE.MeshPhongMaterial({ color: 0x111111, shininess: 50 });
+        const glowMat = new THREE.MeshBasicMaterial({ color: paintColor });
+
+        // === BIKE LOGIC ===
+        if (specs.type === 'bike') {
+            const bikeShape = new THREE.Shape();
+            bikeShape.moveTo(0, 0.4);
+            bikeShape.lineTo(0.5, 0.9);
+            bikeShape.lineTo(1.5, 0.8);
+            bikeShape.lineTo(1.8, 0.9);
+            bikeShape.lineTo(1.8, 0.6);
+            bikeShape.lineTo(1.0, 0.4);
+            bikeShape.lineTo(0, 0.4);
+
+            const extrudeSettings = { steps: 1, depth: 0.4, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05, bevelSegments: 2 };
+            const bodyGeom = new THREE.ExtrudeGeometry(bikeShape, extrudeSettings);
+            bodyGeom.center();
+            
+            const body = new THREE.Mesh(bodyGeom, glassMat);
+            const bodyWire = new THREE.Mesh(bodyGeom, wireMat);
+            body.add(bodyWire);
+            body.position.y = 0.8;
+            carGroup.add(body);
+
+            const wheelRadius = 0.45;
+            const wPositions = [ { x: 0.8, z: 0 }, { x: -0.8, z: 0 } ];
+
+            wPositions.forEach(pos => {
+                const wGroup = new THREE.Group();
+                const tireGeom = new THREE.CylinderGeometry(wheelRadius, wheelRadius, 0.15, 32);
+                tireGeom.rotateX(Math.PI / 2);
+                const tire = new THREE.Mesh(tireGeom, techMat);
+                
+                let rimGeom = new THREE.TorusGeometry(wheelRadius * 0.65, 0.04, 16, 32);
+                if(state.wheel.id === 'disc') {
+                    rimGeom = new THREE.CylinderGeometry(wheelRadius * 0.7, wheelRadius * 0.7, 0.16, 32);
+                    rimGeom.rotateX(Math.PI / 2);
+                }
+
+                const rim = new THREE.Mesh(rimGeom, wireMat);
+                wGroup.add(tire);
+                wGroup.add(rim);
+                wGroup.position.set(pos.x, wheelRadius, pos.z);
+                carGroup.add(wGroup);
+            });
+
+            // Handlebars
+            const handleGeom = new THREE.CylinderGeometry(0.05, 0.05, 0.8, 8);
+            handleGeom.rotateX(Math.PI / 2);
+            const handle = new THREE.Mesh(handleGeom, techMat);
+            handle.position.set(0.4, 1.0, 0); 
+            carGroup.add(handle);
+        } 
+        
+        // === BUS LOGIC (IMPROVED SHAPE) ===
+        else if (specs.type === 'bus') {
+            const busShape = new THREE.Shape();
+            busShape.moveTo(0, 0.5);      // Front bottom
+            busShape.lineTo(0, 1.0);      // Front bumper top
+            busShape.lineTo(0.2, 1.2);    // Windshield start
+            busShape.lineTo(0.8, 2.8);    // Windshield top (slanted back)
+            busShape.lineTo(7.5, 2.8);    // Roof
+            busShape.lineTo(7.8, 2.5);    // Rear top edge
+            busShape.lineTo(7.8, 0.6);    // Rear vertical
+            busShape.lineTo(7.5, 0.5);    // Rear bumper
+            busShape.lineTo(0, 0.5);      // Bottom
+
+            const extrudeSettings = { steps: 2, depth: 2.4, bevelEnabled: true, bevelThickness: 0.1, bevelSize: 0.1, bevelSegments: 3 };
+            const bodyGeom = new THREE.ExtrudeGeometry(busShape, extrudeSettings);
+            bodyGeom.center();
+            
+            const body = new THREE.Mesh(bodyGeom, glassMat);
+            const bodyWire = new THREE.Mesh(bodyGeom, wireMat);
+            body.add(bodyWire);
+            body.position.y = 1.3;
+            carGroup.add(body);
+
+            // Bus Wheels
+            const wheelRadius = 0.65;
+            const wX = 2.5; 
+            const wZ = 1.1;
+            const wheelPos = [ { x: wX, z: wZ }, { x: wX, z: -wZ }, { x: -wX, z: wZ }, { x: -wX, z: -wZ } ];
+            
+            wheelPos.forEach(pos => {
+                const wGroup = new THREE.Group();
+                const tireGeom = new THREE.CylinderGeometry(wheelRadius, wheelRadius, 0.4, 32);
+                tireGeom.rotateX(Math.PI / 2);
+                const tire = new THREE.Mesh(tireGeom, techMat);
+                
+                let rimGeom = new THREE.CylinderGeometry(wheelRadius * 0.7, wheelRadius * 0.7, 0.42, 16);
+                rimGeom.rotateX(Math.PI / 2);
+                const rim = new THREE.Mesh(rimGeom, wireMat);
+                
+                wGroup.add(tire);
+                wGroup.add(rim);
+                wGroup.position.set(pos.x, wheelRadius, pos.z);
+                carGroup.add(wGroup);
+            });
+        }
+
+        // === SEMI TRUCK LOGIC ===
+        else if (specs.type === 'semi') {
+            const semiShape = new THREE.Shape();
+            semiShape.moveTo(0, 0.5);
+            semiShape.lineTo(0, 1.0); // Bumper
+            semiShape.lineTo(0.2, 1.8); // Grill Top
+            semiShape.lineTo(0.5, 2.5); // Windshield Top
+            semiShape.lineTo(1.5, 2.5); // Cab Roof Back
+            semiShape.lineTo(1.5, 1.0); // Cab Back Down
+            semiShape.lineTo(3.5, 1.0); // Chassis Back
+            semiShape.lineTo(3.5, 0.5); // Rear Down
+            semiShape.lineTo(0, 0.5);
+
+            const extrudeSettings = { steps: 1, depth: 2.2, bevelEnabled: true, bevelThickness: 0.1, bevelSize: 0.1, bevelSegments: 2 };
+            const bodyGeom = new THREE.ExtrudeGeometry(semiShape, extrudeSettings);
+            bodyGeom.center();
+            
+            const body = new THREE.Mesh(bodyGeom, glassMat);
+            const bodyWire = new THREE.Mesh(bodyGeom, wireMat);
+            body.add(bodyWire);
+            body.position.y = 1.2;
+            carGroup.add(body);
+
+            const wheelRadius = 0.6;
+            const wX = 1.2; 
+            const wZ = 1.0;
+            // Semi Wheels: Front and Rear
+            const wheelPos = [ { x: 1.0, z: wZ }, { x: 1.0, z: -wZ }, { x: -1.2, z: wZ }, { x: -1.2, z: -wZ } ];
+            
+            wheelPos.forEach(pos => {
+                const wGroup = new THREE.Group();
+                const tireGeom = new THREE.CylinderGeometry(wheelRadius, wheelRadius, 0.4, 32);
+                tireGeom.rotateX(Math.PI / 2);
+                const tire = new THREE.Mesh(tireGeom, techMat);
+                
+                let rimGeom = new THREE.CylinderGeometry(wheelRadius * 0.7, wheelRadius * 0.7, 0.42, 16);
+                rimGeom.rotateX(Math.PI / 2);
+                const rim = new THREE.Mesh(rimGeom, wireMat);
+                
+                wGroup.add(tire);
+                wGroup.add(rim);
+                wGroup.position.set(pos.x, wheelRadius, pos.z);
+                carGroup.add(wGroup);
+            });
+        }
+
+        // === CAR LOGIC (Default) ===
+        else {
+            const bodyShape = new THREE.Shape();
+            bodyShape.moveTo(0, 0.5);
+            bodyShape.lineTo(0, 0.75);
+            bodyShape.lineTo(1.2, 0.85);
+            bodyShape.lineTo(2.0, 1.4);
+            bodyShape.lineTo(3.2, 1.35);
+            bodyShape.lineTo(4.2, 0.9);
+            bodyShape.lineTo(4.5, 1.1); 
+            bodyShape.lineTo(4.5, 0.6);
+            bodyShape.lineTo(2.8, 0.5);
+            bodyShape.lineTo(0, 0.5);
+
+            const extrudeSettings = { steps: 2, depth: specs.w, bevelEnabled: true, bevelThickness: 0.1, bevelSize: 0.1, bevelSegments: 3 };
+            const bodyGeom = new THREE.ExtrudeGeometry(bodyShape, extrudeSettings);
+            bodyGeom.center();
+            
+            const body = new THREE.Mesh(bodyGeom, glassMat); 
+            const bodyWire = new THREE.Mesh(bodyGeom, wireMat);
+            body.add(bodyWire);
+            body.position.y = 0.9; 
+            if(specs.type === 'suv') { body.scale.set(1.1, 1.3, 1.2); body.position.y = 1.1; }
+            carGroup.add(body);
+
+            const wheelRadius = specs.type === 'suv' ? 0.55 : 0.45;
+            const wX = 1.4; const wZ = specs.w / 2 - 0.2;
+            const wheelPos = [ { x: wX, z: wZ }, { x: wX, z: -wZ }, { x: -wX, z: wZ }, { x: -wX, z: -wZ } ];
+
+            wheelPos.forEach(pos => {
+                const wGroup = new THREE.Group();
+                const tireGeom = new THREE.CylinderGeometry(wheelRadius, wheelRadius, 0.35, 32);
+                tireGeom.rotateX(Math.PI / 2);
+                const tire = new THREE.Mesh(tireGeom, techMat);
+                
+                let rimGeom;
+                if(state.wheel.id === 'neon') rimGeom = new THREE.TorusGeometry(wheelRadius * 0.65, 0.04, 16, 48);
+                else if (state.wheel.id === 'turbine') { rimGeom = new THREE.CylinderGeometry(wheelRadius * 0.75, wheelRadius * 0.75, 0.36, 8); rimGeom.rotateX(Math.PI / 2); }
+                else if (state.wheel.id === 'spikes') { rimGeom = new THREE.ConeGeometry(wheelRadius * 0.8, 0.2, 8); rimGeom.rotateX(Math.PI / 2); }
+                else if (state.wheel.id === 'disc') { rimGeom = new THREE.CylinderGeometry(wheelRadius * 0.7, wheelRadius * 0.7, 0.38, 32); rimGeom.rotateX(Math.PI / 2); }
+                else { rimGeom = new THREE.CylinderGeometry(wheelRadius * 0.6, wheelRadius * 0.6, 0.36, 16); rimGeom.rotateX(Math.PI / 2); }
+
+                const rim = new THREE.Mesh(rimGeom, wireMat);
+                wGroup.add(tire);
+                wGroup.add(rim);
+                wGroup.position.set(pos.x, wheelRadius, pos.z);
+                carGroup.add(wGroup);
+            });
+        }
+
+        // --- COMMON: UNDERGLOW ---
+        const underglowGeom = new THREE.PlaneGeometry(specs.type==='bike'?2:5, specs.type==='bike'?1:3);
+        const underglowMat = new THREE.MeshBasicMaterial({ color: 0xbc13fe, transparent: true, opacity: 0.2, side: THREE.DoubleSide });
+        const underglow = new THREE.Mesh(underglowGeom, underglowMat);
+        underglow.rotation.x = -Math.PI / 2; underglow.position.y = 0.02;
+        carGroup.add(underglow);
+
+        scene.add(carGroup);
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        const time = Date.now() * 0.002;
+        if(carGroup) carGroup.position.y = Math.sin(time) * 0.05; 
+        renderer.render(scene, camera);
+    }
+
+    window.onload = () => {
+        initThreeJS();
+        renderUI();
+        const params = new URLSearchParams(window.location.search);
+        const requestedModel = params.get('model');
+        if (requestedModel) {
+            const targetCar = carModels.find(c => c.id === requestedModel);
+            if (targetCar) { state.model = targetCar; buildCar3D(); renderUI(); }
+        }
+        updateStats();
+    };
+
+    function renderUI() {
+        const modelContainer = document.getElementById('modelList');
+        modelContainer.innerHTML = '';
+        carModels.forEach(m => {
+            const div = createCard(m.name, m.price, m.icon, m.id === state.model.id, () => setModel(m));
+            modelContainer.appendChild(div);
+        });
+
+        const colorContainer = document.getElementById('colorList');
+        colorContainer.innerHTML = '';
+        colors.forEach(c => {
+            const div = document.createElement('div');
+            div.className = `color-circle ${c.hex === state.color.hex ? 'active' : ''}`;
+            div.style.backgroundColor = '#' + c.hex.toString(16).padStart(6, '0');
+            div.style.boxShadow = `0 0 10px #${c.hex.toString(16)}`;
+            div.onclick = () => setColor(c);
+            colorContainer.appendChild(div);
+        });
+
+        const wheelContainer = document.getElementById('wheelList');
+        wheelContainer.innerHTML = '';
+        wheels.forEach(w => {
+            const div = createCard(w.name, w.price, w.icon, w.id === state.wheel.id, () => setWheel(w));
+            wheelContainer.appendChild(div);
+        });
+
+        const engineContainer = document.getElementById('engineList');
+        engineContainer.innerHTML = '';
+        engines.forEach(e => {
+            const div = createCard(e.name, e.price, e.icon, e.id === state.engine.id, () => setEngine(e));
+            engineContainer.appendChild(div);
+        });
+    }
+
+    function createCard(title, price, iconClass, isActive, onClick) {
+        const div = document.createElement('div');
+        div.className = `option-card ${isActive ? 'active' : ''}`;
+        div.onclick = onClick;
+        div.innerHTML = `
+            <i class="fas ${iconClass}"></i>
+            <span class="option-name">${title}</span>
+            <span class="option-cost">${price === 0 ? 'INCLUDED' : '+$'+price.toLocaleString()}</span>
+        `;
+        return div;
+    }
+
+    function setModel(m) { state.model = m; buildCar3D(); renderUI(); updateStats(); }
+    function setColor(c) { state.color = c; buildCar3D(); renderUI(); updateStats(); }
+    function setWheel(w) { state.wheel = w; buildCar3D(); renderUI(); updateStats(); }
+    function setEngine(e) { state.engine = e; renderUI(); updateStats(); }
+
+    function updateStats() {
+        const total = state.model.price + state.color.price + state.wheel.price + state.engine.price;
+        document.getElementById('totalPrice').innerText = '$' + total.toLocaleString();
+        document.getElementById('modelNameDisplay').innerText = state.model.name;
+        const boost = state.engine.boost;
+        updateBar('barSpeed', 'statSpeedVal', Math.min(100, state.model.speed + boost));
+        updateBar('barAcc', 'statAccVal', Math.min(100, state.model.acc + (boost/2)));
+        updateBar('barHand', 'statHandVal', state.model.handling);
+    }
+
+    function updateBar(barId, txtId, val) {
+        document.getElementById(barId).style.width = val + '%';
+        document.getElementById(txtId).innerText = Math.round(val);
+    }
+
+    function finishBuild() {
+        alert(`Fabrication Initiated for: ${state.model.name}\nTotal: $${(state.model.price + state.color.price + state.wheel.price + state.engine.price).toLocaleString()}`);
+    }
+  </script>
+</body>
+</html>
