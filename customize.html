@@ -407,6 +407,36 @@
     @keyframes orbitPulse { 0%, 100% { opacity: .35; transform: rotate(-12deg) scale(.98); } 50% { opacity: .8; transform: rotate(-8deg) scale(1.03); } }
     html[data-theme="light"] .ambient-background { opacity: .3; }
     @media (prefers-reduced-motion: reduce) { .ambient-background::before, .ambient-background::after, .ambient-orbit { animation: none !important; } }
+    .build-result { display: none; position: fixed; inset: 0; z-index: 100; place-items: center; padding: 22px; background: rgba(2,3,12,.72); backdrop-filter: blur(14px); }
+    .build-result.is-open { display: grid; animation: resultFade .35s ease both; }
+    .result-card { position: relative; width: min(720px, 100%); max-height: min(820px, 92vh); overflow: auto; padding: clamp(24px, 5vw, 48px); border: 1px solid rgba(95,247,255,.45); border-radius: 24px; background: linear-gradient(145deg, rgba(13,16,35,.96), rgba(29,11,48,.94)); box-shadow: 0 0 80px rgba(95,247,255,.18), 0 24px 80px rgba(0,0,0,.45); color: #f4f3ff; }
+    .result-card::before { content: ""; position: absolute; inset: 12px; border: 1px solid rgba(188,19,254,.2); border-radius: 17px; pointer-events: none; }
+    .result-close { position: absolute; top: 18px; right: 18px; z-index: 1; width: 36px; height: 36px; border: 1px solid rgba(95,247,255,.35); border-radius: 50%; color: #dffcff; background: rgba(95,247,255,.08); cursor: pointer; font-size: 1.2rem; }
+    .result-close:hover { background: var(--cyan); color: #071018; }
+    .result-hero { display: flex; align-items: center; gap: 18px; position: relative; z-index: 1; }
+    .result-check { display: grid; place-items: center; width: 64px; height: 64px; flex: 0 0 auto; border: 1px solid var(--cyan); border-radius: 50%; color: var(--cyan); font-size: 2rem; box-shadow: 0 0 28px rgba(95,247,255,.3); animation: checkPulse 2.2s ease-in-out infinite; }
+    .result-kicker { color: var(--cyan); font: 600 .7rem Orbitron, sans-serif; letter-spacing: .18em; text-transform: uppercase; }
+    .result-hero h2 { margin: 5px 0 0; color: #fff; font-size: clamp(1.35rem, 4vw, 2.15rem); }
+    .result-subtitle { margin: 24px 0 16px; color: #a9abc5; }
+    .result-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; position: relative; z-index: 1; }
+    .result-item { padding: 12px 14px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; background: rgba(255,255,255,.05); }
+    .result-item span { display: block; color: #a9abc5; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; }
+    .result-item strong { display: block; margin-top: 3px; color: #fff; font-family: Orbitron, sans-serif; font-size: .82rem; }
+    .result-total { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-top: 20px; padding-top: 18px; border-top: 1px solid rgba(95,247,255,.28); position: relative; z-index: 1; }
+    .result-total span { color: #a9abc5; text-transform: uppercase; letter-spacing: .12em; font-size: .75rem; }
+    .result-total strong { color: var(--gold); font: 800 clamp(1.5rem, 5vw, 2.5rem) Orbitron, sans-serif; text-shadow: 0 0 18px rgba(247,201,92,.28); }
+    .result-actions { display: flex; justify-content: flex-end; margin-top: 24px; position: relative; z-index: 1; }
+    .result-action { padding: 12px 18px; border: 1px solid var(--cyan); border-radius: 999px; color: #071018; background: var(--cyan); cursor: pointer; font: 600 .72rem Orbitron, sans-serif; }
+    .result-action:hover { box-shadow: 0 0 24px rgba(95,247,255,.35); transform: translateY(-2px); }
+    html[data-theme="light"] .build-result { background: rgba(28,25,58,.34); }
+    html[data-theme="light"] .result-card { background: linear-gradient(145deg, rgba(255,255,255,.97), rgba(239,233,255,.97)); color: var(--theme-text); box-shadow: 0 24px 80px rgba(35,24,83,.22); }
+    html[data-theme="light"] .result-hero h2, html[data-theme="light"] .result-item strong { color: #28144f; }
+    html[data-theme="light"] .result-subtitle, html[data-theme="light"] .result-item span, html[data-theme="light"] .result-total span { color: var(--theme-muted); }
+    html[data-theme="light"] .result-item { background: rgba(255,255,255,.68); border-color: rgba(87,44,166,.16); }
+    @keyframes resultFade { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes checkPulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 28px rgba(95,247,255,.3); } 50% { transform: scale(1.08); box-shadow: 0 0 42px rgba(95,247,255,.55); } }
+    @media (max-width: 520px) { .result-grid { grid-template-columns: 1fr; } .result-hero { align-items: flex-start; } }
+    @media (prefers-reduced-motion: reduce) { .build-result.is-open, .result-check { animation: none !important; } .result-action:hover { transform: none; } }
   </style>
 </head>
 <body>
@@ -495,6 +525,30 @@
       </div>
     </div>
   </div>
+
+  <section class="build-result" id="buildResult" role="dialog" aria-modal="true" aria-labelledby="resultTitle" aria-describedby="resultSubtitle" hidden>
+    <div class="result-card">
+      <button class="result-close" id="resultClose" type="button" aria-label="Close build result">×</button>
+      <div class="result-hero">
+        <div class="result-check" aria-hidden="true">✓</div>
+        <div>
+          <div class="result-kicker">Fabrication sequence complete</div>
+          <h2 id="resultTitle">Your build is ready</h2>
+        </div>
+      </div>
+      <p class="result-subtitle" id="resultSubtitle">Configuration locked and sent to the Velonix production queue.</p>
+      <div class="result-grid">
+        <div class="result-item"><span>Vehicle</span><strong id="resultModel">—</strong></div>
+        <div class="result-item"><span>Powertrain</span><strong id="resultPowertrain">—</strong></div>
+        <div class="result-item"><span>Body finish</span><strong id="resultColor">—</strong></div>
+        <div class="result-item"><span>Wheel system</span><strong id="resultWheels">—</strong></div>
+        <div class="result-item"><span>Doors / access</span><strong id="resultDoors">—</strong></div>
+        <div class="result-item"><span>Windows / tint</span><strong id="resultWindows">—</strong></div>
+      </div>
+      <div class="result-total"><span>Estimated build total</span><strong id="resultPrice">$0</strong></div>
+      <div class="result-actions"><button class="result-action" id="resultDone" type="button">RETURN TO CONFIGURATOR</button></div>
+    </div>
+  </section>
 
   <script>
   (() => {
@@ -1082,8 +1136,38 @@
       document.getElementById('inspectionSpec').textContent = current ? `${current.name}: ${current.description || current.spec || 'Factory-compatible selection'}${current.price ? ` · ${money(current.price)}` : ' · included'}` : 'This vehicle has no compatible option for this part.';
       const action = document.getElementById('inspectionControlButton'); action.hidden = !info.control; action.textContent = current ? `OPEN ${info.name.toUpperCase()} CONTROL` : 'CONTROL UNAVAILABLE'; action.onclick = () => document.getElementById(info.control)?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
     }
-    function finishBuild() { alert(`Fabrication Initiated for: ${state.model.name}\nPowertrain: ${state.powertrain.name}\nTotal: ${money(totalPrice())}`); }
+    function closeBuildResult() {
+      const modal = document.getElementById('buildResult');
+      if (!modal) return;
+      modal.classList.remove('is-open');
+      window.setTimeout(() => { modal.hidden = true; }, reduceMotion ? 0 : 350);
+    }
+    function finishBuild() {
+      const modal = document.getElementById('buildResult');
+      if (!modal) return;
+      const selections = {
+        resultModel: state.model.name,
+        resultPowertrain: state.powertrain?.name || 'Not selected',
+        resultColor: state.color?.name || 'Factory finish',
+        resultWheels: state.wheel?.name || 'Factory wheels',
+        resultDoors: state.door?.name || 'Not applicable',
+        resultWindows: state.tint?.name || 'Factory glass',
+        resultPrice: money(totalPrice())
+      };
+      Object.entries(selections).forEach(([id, value]) => { document.getElementById(id).textContent = value; });
+      modal.hidden = false;
+      requestAnimationFrame(() => modal.classList.add('is-open'));
+      document.getElementById('resultClose')?.focus();
+    }
     window.finishBuild = finishBuild;
+    document.getElementById('resultClose')?.addEventListener('click', closeBuildResult);
+    document.getElementById('resultDone')?.addEventListener('click', closeBuildResult);
+    document.getElementById('buildResult')?.addEventListener('click', event => {
+      if (event.target.id === 'buildResult') closeBuildResult();
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && !document.getElementById('buildResult')?.hidden) closeBuildResult();
+    });
 
     window.onload = () => {
       const requested = new URLSearchParams(window.location.search).get('model')?.toLowerCase();
