@@ -52,7 +52,7 @@ This project demonstrates front-end development, UI/UX design, and 3D rendering 
 ## 📂 Project Structure
 velonix-car-configurator/
 │── index.html
-│── garage.html
+│── Garage.html
 │── customize.html
 │
 ├── css/
