@@ -510,7 +510,14 @@
     }
 
     function material(color, opacity = 1, transparent = false) {
-      return new THREE.MeshPhongMaterial({ color, transparent, opacity, shininess: 95, side: THREE.DoubleSide });
+      return new THREE.MeshPhongMaterial({
+        color,
+        transparent,
+        opacity,
+        shininess: transparent ? 120 : 85,
+        specular: transparent ? 0x9bb8d8 : 0x6f7891,
+        side: THREE.DoubleSide
+      });
     }
     function partGroup(id) {
       const group = new THREE.Group();
@@ -520,6 +527,8 @@
     function addMesh(group, geometry, mat, position, rotation = [0, 0, 0], scale = [1, 1, 1]) {
       const mesh = new THREE.Mesh(geometry, mat);
       mesh.position.set(...position); mesh.rotation.set(...rotation); mesh.scale.set(...scale);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
       group.add(mesh); return mesh;
     }
     function addWindow(group, geometry, position, rotation = [0, 0, 0]) {
@@ -547,12 +556,16 @@
       const beam = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, direction.length(), segments), mat);
       beam.position.copy(a.clone().add(b).multiplyScalar(.5));
       beam.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
+      beam.castShadow = true;
+      beam.receiveShadow = true;
       group.add(beam);
       return beam;
     }
     function addWheel(wheelGroup, radius, position, finishColor) {
-      const tire = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, .32, 24), material(0x11131b));
+      const tire = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, .32, 32), material(0x08090d));
       tire.rotation.x = Math.PI / 2;
+      tire.castShadow = true;
+      tire.receiveShadow = true;
       const rimMat = material(finishColor, 1);
       let rimGeometry = new THREE.CylinderGeometry(radius * .63, radius * .63, .35, 20);
       if (state.wheel.id === 'aero' || state.wheel.id === 'transit') {
@@ -578,6 +591,8 @@
       if (state.wheel.id === 'allTerrain' || state.wheel.id === 'heavy') {
         addMesh(wheelGroup, new THREE.TorusGeometry(radius * .38, .045, 8, 16), material(0x788397), [0, 0, 0], [Math.PI / 2, 0, 0]);
       }
+      addMesh(wheelGroup, new THREE.CylinderGeometry(radius * .42, radius * .42, .025, 24), material(0x4e5664), [0, 0, .18], [Math.PI / 2, 0, 0]);
+      addMesh(wheelGroup, new THREE.BoxGeometry(.045, radius * .3, .08), material(0xd94b56), [radius * .28, 0, .2]);
       addMesh(wheelGroup, new THREE.CylinderGeometry(radius * .12, radius * .12, .37, 12), rimMat, [0, 0, 0], [Math.PI / 2, 0, 0]);
     }
     function addWheelArch(group, x, radius, side, width, trimMat) {
@@ -830,17 +845,38 @@
 
     function setupThree() {
       const container = document.getElementById('canvas-container');
-      scene = new THREE.Scene(); scene.fog = new THREE.FogExp2(0x05050d, .025);
+      scene = new THREE.Scene(); scene.fog = new THREE.FogExp2(0x05050d, .012);
       camera = new THREE.PerspectiveCamera(48, container.clientWidth / container.clientHeight, .1, 120);
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       renderer.setSize(container.clientWidth, container.clientHeight); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       container.appendChild(renderer.domElement);
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true; controls.enablePan = false; controls.autoRotate = !reduceMotion; controls.autoRotateSpeed = .7;
       scene.add(new THREE.GridHelper(24, 24, 0xbc13fe, 0x202235));
-      scene.add(new THREE.HemisphereLight(0x9c8cff, 0x101018, 1.15));
-      const key = new THREE.PointLight(0x5ff7ff, 1.1, 40); key.position.set(5, 8, 5); scene.add(key);
-      const fill = new THREE.PointLight(0xbc13fe, .9, 30); fill.position.set(-5, 4, -4); scene.add(fill);
+      scene.add(new THREE.HemisphereLight(0xc8d7ff, 0x090b14, 1.35));
+      const key = new THREE.DirectionalLight(0xffffff, 1.65);
+      key.position.set(6, 10, 7);
+      key.castShadow = true;
+      key.shadow.mapSize.set(1024, 1024);
+      key.shadow.camera.near = .1;
+      key.shadow.camera.far = 45;
+      key.shadow.camera.left = -14;
+      key.shadow.camera.right = 14;
+      key.shadow.camera.top = 14;
+      key.shadow.camera.bottom = -14;
+      scene.add(key);
+      const rim = new THREE.PointLight(0x5ff7ff, 1.25, 42); rim.position.set(5, 5, -6); scene.add(rim);
+      const fill = new THREE.PointLight(0xbc13fe, .55, 35); fill.position.set(-6, 3, 4); scene.add(fill);
+      const floor = new THREE.Mesh(
+        new THREE.PlaneGeometry(30, 30),
+        new THREE.MeshPhongMaterial({ color: 0x070910, transparent: true, opacity: .72, shininess: 12 })
+      );
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.y = -.015;
+      floor.receiveShadow = true;
+      scene.add(floor);
       raycaster = new THREE.Raycaster();
       renderer.domElement.addEventListener('pointerdown', event => { pointerDown = { x: event.clientX, y: event.clientY }; });
       renderer.domElement.addEventListener('pointerup', event => {
