@@ -281,10 +281,10 @@
       *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
     }
     .inspection-panel {
-      position: absolute; top: 58px; right: 24px; width: min(310px, calc(100% - 48px));
-      z-index: 25; padding: 16px; border: 1px solid rgba(95,247,255,.4);
-      border-radius: 12px; background: rgba(7,8,18,.86); backdrop-filter: blur(14px);
-      box-shadow: 0 0 24px rgba(95,247,255,.1); pointer-events: auto;
+      position: static; width: auto; margin: 18px 22px 22px; padding: 16px;
+      border: 1px solid rgba(95,247,255,.4); border-radius: 12px;
+      background: rgba(7,8,18,.86); backdrop-filter: blur(14px);
+      box-shadow: 0 0 24px rgba(95,247,255,.1);
     }
     .inspection-kicker { color: var(--cyan); font: 600 .65rem Orbitron, sans-serif; letter-spacing: .14em; }
     .inspection-panel h3 { margin: 4px 0 5px; color: #fff; font-size: 1.05rem; }
@@ -305,9 +305,6 @@
     .control-section[hidden] { display: none; }
     .compatibility-note { grid-column: 1 / -1; color: var(--muted); font-size: .78rem; }
     .option-card small { display: block; color: var(--muted); font-size: .68rem; margin-top: 4px; }
-    @media (max-width: 700px) {
-      .inspection-panel { top: 48px; right: 14px; width: min(300px, calc(100% - 28px)); }
-    }
   </style>
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -325,15 +322,6 @@
       <div class="holo-overlay"></div>
       <div class="scan-line"></div>
       <div id="canvas-container"></div>
-      <aside class="inspection-panel" aria-live="polite">
-        <div class="inspection-kicker">PART INSPECTION</div>
-        <h3 id="inspectionName">Vehicle body</h3>
-        <p id="inspectionDescription">Select a holographic component to inspect its construction and compatible controls.</p>
-        <p class="inspection-spec" id="inspectionSpec">Click the model or use the inspection buttons.</p>
-        <div class="part-list" id="inspectionPartList" aria-label="Inspectable vehicle parts"></div>
-        <button class="inspection-action" id="inspectionControlButton" type="button">OPEN COMPATIBLE CONTROL</button>
-      </aside>
-      
       <div class="stats-container">
         <h4 id="modelNameDisplay">Analyzing...</h4>
         <div class="stat-row">
@@ -361,6 +349,15 @@
         <div class="section-title">1. Select Hologram Model</div>
         <div class="options-grid" id="modelList"></div>
       </div>
+
+      <aside class="inspection-panel" aria-live="polite">
+        <div class="inspection-kicker">PART INSPECTION</div>
+        <h3 id="inspectionName">Vehicle body</h3>
+        <p id="inspectionDescription">Select a holographic component to inspect its construction and compatible controls.</p>
+        <p class="inspection-spec" id="inspectionSpec">Click the model or use the inspection buttons.</p>
+        <div class="part-list" id="inspectionPartList" aria-label="Inspectable vehicle parts"></div>
+        <button class="inspection-action" id="inspectionControlButton" type="button">OPEN COMPATIBLE CONTROL</button>
+      </aside>
 
       <div class="control-section" id="paintSection">
         <div class="section-title">2. Body Paint</div>
@@ -459,6 +456,7 @@
       },
       {
         id: 'bus', name: 'Neon Transit', type: 'bus', basePrice: 240000, icon: 'fa-bus',
+        description: 'Low-floor electric city bus with route lighting and panoramic passenger glazing.',
         stats: { speed: 50, acc: 34, handling: 59 }, dimensions: { length: 8, width: 2.6, height: 3.1 },
         paints: ['white', 'cyan', 'purple', 'gold', 'black'], wheels: ['transit', 'heavy'],
         doors: [option('transit', 'Transit Fold', 0, 'fa-door-open', 'Wide, low-floor passenger doors'), option('panoramic', 'Panoramic Entry', 4600, 'fa-door-open', 'Glass-forward entry door package')],
@@ -468,6 +466,7 @@
       },
       {
         id: 'titan', name: 'Titan Edge Bike', type: 'bike', basePrice: 52000, icon: 'fa-motorcycle',
+        description: 'Performance motorcycle with a sculpted tank, fairing and grounded twin-wheel stance.',
         stats: { speed: 94, acc: 91, handling: 98 }, dimensions: { length: 2.5, width: .9, height: 1.5 },
         paints: ['purple', 'crimson', 'cyan', 'black'], wheels: ['spoke', 'disc', 'aero'],
         doors: [], tints: [option('clear', 'Clear Visor', 0, 'fa-window-maximize', 'Optical-clear rider visor'), option('smoke', 'Smoke Visor', 380, 'fa-cloud', 'Tinted aerodynamic visor')],
@@ -613,25 +612,37 @@
         const bikeWheel = .43;
         [-.95, .95].forEach(x => {
           const wheel = partGroup('wheels');
-          addWheel(wheel, bikeWheel, [x, bikeWheel, 0], state.wheel.id === 'disc' ? paint : 0xadb7c8);
+          addWheel(wheel, bikeWheel, [0, 0, 0], state.wheel.id === 'disc' ? paint : 0xadb7c8);
           wheel.position.set(x, bikeWheel, 0); wheels.add(wheel);
         });
-        addBeam(body, trimMat, [-.7, .58, 0], [.08, 1.0, 0], .055);
-        addBeam(body, trimMat, [.08, 1.0, 0], [.78, .66, 0], .05);
-        addBeam(body, trimMat, [-.7, .58, 0], [.78, .66, 0], .045);
-        addBeam(body, trimMat, [.78, .66, 0], [.95, 1.0, 0], .035);
-        addBeam(body, trimMat, [.95, 1.0, 0], [1.02, 1.34, 0], .035);
-        addProfile(body, [[-.36, .88], [-.1, 1.06], [.36, 1.02], [.52, .83], [.18, .76], [-.26, .79]], .48, bodyMat, [0, 0, 0], .04);
-        addProfile(doors, [[-.42, .77], [-.2, .88], [.3, .84], [.42, .75], [.22, .69], [-.32, .7]], .58, doorMat, [0, 0, 0], .025);
-        addMesh(doors, new THREE.BoxGeometry(.55, .06, .06), trimMat, [-.05, 1.18, .28], [0, 0, -.08]);
-        addMesh(doors, new THREE.BoxGeometry(.55, .06, .06), trimMat, [-.05, 1.18, -.28], [0, 0, -.08]);
-        addWindow(windows, profileGeometry([[-.02, 1.1], [.28, 1.23], [.55, 1.2], [.72, 1.08], [.08, 1.06]], .42, .025), [0, 0, 0]);
-        addBeam(body, trimMat, [.74, 1.18, 0], [1.04, 1.42, 0], .025);
-        addBeam(body, trimMat, [.74, 1.18, .28], [1.04, 1.42, .28], .025);
-        addBeam(body, trimMat, [.74, 1.18, -.28], [1.04, 1.42, -.28], .025);
-        addMesh(lights, new THREE.SphereGeometry(.14, 16, 10), accentMat, [1.02, 1.12, 0]);
-        addMesh(lights, new THREE.BoxGeometry(.06, .12, .58), material(0xff234f), [-.98, .72, 0]);
-        addMesh(powertrain, new THREE.CylinderGeometry(.22, .22, .34, 16), material(state.powertrain.id === 'electric' ? 0x34d9ff : 0xd25b3e), [-.18, .78, 0], [Math.PI / 2, 0, 0]);
+        addBeam(body, trimMat, [-.95, .43, 0], [-.18, .72, 0], .055);
+        addBeam(body, trimMat, [-.18, .72, 0], [.78, .62, 0], .055);
+        addBeam(body, trimMat, [-.18, .72, 0], [.15, 1.02, 0], .045);
+        addBeam(body, trimMat, [.15, 1.02, .16], [.92, 1.14, .16], .035);
+        addBeam(body, trimMat, [.15, 1.02, -.16], [.92, 1.14, -.16], .035);
+        addBeam(body, trimMat, [.78, .62, 0], [.95, .43, 0], .045);
+        addBeam(body, trimMat, [.78, .62, 0], [1.02, 1.08, 0], .035);
+        addProfile(body, [[-.36, .82], [-.12, 1.08], [.36, 1.04], [.54, .84], [.28, .73], [-.22, .75]], .5, bodyMat, [0, 0, 0], .045);
+        [-1, 1].forEach(side => {
+          addProfile(body, [[.1, .78], [.28, 1.0], [.67, .91], [.8, .73], [.34, .67]], .055, bodyMat, [0, 0, side * .29], .025);
+          addBeam(body, trimMat, [.72, .62, side * .3], [.98, .98, side * .22], .04);
+        });
+        addProfile(body, [[-.65, .78], [-.42, .88], [.08, .86], [.2, .77], [.02, .7], [-.5, .71]], .38, doorMat, [-.12, 0, 0], .025);
+        addProfile(body, [[-.08, 1.08], [.22, 1.26], [.62, 1.23], [.78, 1.08], [.1, 1.06]], .34, material(0x142b45, .72, true), [0, 0, 0], .025);
+        addBeam(windows, trimMat, [.12, 1.08, -.18], [.62, 1.2, -.18], .018);
+        addBeam(windows, trimMat, [.12, 1.08, .18], [.62, 1.2, .18], .018);
+        [-1, 1].forEach(side => {
+          addBeam(body, trimMat, [.78, .62, side * .18], [1.0, 1.12, side * .18], .035);
+          addBeam(body, trimMat, [.98, .98, side * .2], [1.06, 1.3, side * .2], .028);
+        });
+        addBeam(body, trimMat, [1.02, 1.14, -.28], [1.02, 1.14, .28], .025);
+        addMesh(lights, new THREE.SphereGeometry(.14, 16, 10), accentMat, [1.07, 1.15, 0]);
+        addMesh(lights, new THREE.BoxGeometry(.08, .1, .34), material(0xff234f), [-1.0, .68, 0]);
+        addMesh(powertrain, new THREE.BoxGeometry(.48, .42, .4), material(state.powertrain.id === 'electric' ? 0x34d9ff : 0xd25b3e), [-.08, .63, 0]);
+        addMesh(powertrain, new THREE.CylinderGeometry(.16, .16, .3, 16), material(0x202938), [-.08, .63, .22], [Math.PI / 2, 0, 0]);
+        addBeam(powertrain, material(0x919caf), [.18, .58, .22], [.78, .55, .22], .035);
+        addBeam(body, trimMat, [-.92, .48, -.2], [-.25, .61, -.2], .025);
+        addBeam(body, trimMat, [-.92, .48, .2], [-.25, .61, .2], .025);
       } else {
         const L = dimensions.length, W = dimensions.width;
         const wheelRadius = type === 'bus' || type === 'semi' ? .62 : type === 'suv' ? .56 : type === 'hyper' ? .43 : .46;
@@ -641,7 +652,7 @@
         else axles = [-L * .31, L * .31];
         axles.forEach(x => [-1, 1].forEach(side => {
           const wheel = partGroup('wheels');
-          addWheel(wheel, wheelRadius, [x, wheelRadius, side * (W / 2 + .11)], state.wheel.id === 'aero' ? 0x9fe9ff : 0xc5c9d7);
+          addWheel(wheel, wheelRadius, [0, 0, 0], state.wheel.id === 'aero' ? 0x9fe9ff : 0xc5c9d7);
           wheel.position.set(x, wheelRadius, side * (W / 2 + .11)); wheels.add(wheel);
           addWheelArch(body, x, wheelRadius, side, W, trimMat);
         }));
@@ -677,6 +688,11 @@
           addLightPair(lights, new THREE.BoxGeometry(.06, .1, .25), -L * .47, .61, W, material(0xff234f), .3, [0, 0, .08]);
           addMesh(lights, new THREE.BoxGeometry(.06, .06, W * .42), accentMat, [L * .44, .73, 0]);
           addMesh(powertrain, new THREE.BoxGeometry(L * .24, .22, W * .5), material(state.powertrain.id.includes('electric') || state.powertrain.id === 'dualMotor' || state.powertrain.id === 'triMotor' ? 0x26c9e8 : 0xb94b39), [L * .2, .58, 0]);
+          [-1, 1].forEach(side => addMesh(body, new THREE.BoxGeometry(L * .58, .08, .08), trimMat, [-L * .02, .48, side * (W / 2 + .04)]));
+          addBeam(body, trimMat, [-L * .34, .74, -.2], [-L * .34, .96, -.2], .035);
+          addBeam(body, trimMat, [-L * .34, .74, .2], [-L * .34, .96, .2], .035);
+          addBeam(body, bodyMat, [-L * .43, .96, -.25], [-L * .2, .96, -.25], .045);
+          addBeam(body, bodyMat, [-L * .43, .96, .25], [-L * .2, .96, .25], .045);
         } else if (type === 'suv') {
           addProfile(body, [
             [-L / 2, .48], [-L * .46, .44], [-L * .4, .72], [L * .38, .75],
@@ -703,6 +719,8 @@
           addLightPair(lights, new THREE.BoxGeometry(.09, .15, .32), -L * .47, .72, W, material(0xff234f), .3);
           addMesh(body, new THREE.BoxGeometry(L * .54, .055, .06), trimMat, [0, 1.84, W * .42]);
           addMesh(body, new THREE.BoxGeometry(L * .54, .055, .06), trimMat, [0, 1.84, -W * .42]);
+          addBeam(body, trimMat, [-L * .28, 1.85, -.48], [L * .24, 1.85, -.48], .035);
+          addBeam(body, trimMat, [-L * .28, 1.85, .48], [L * .24, 1.85, .48], .035);
           addMesh(powertrain, new THREE.BoxGeometry(.9, .4, W * .58), material(state.powertrain.id.includes('electric') || state.powertrain.id === 'dualMotor' ? 0x26c9e8 : 0xb94b39), [L * .27, .7, 0]);
         } else if (type === 'semi') {
           addProfile(body, [[-L / 2, .55], [-L / 2, 2.25], [-.55, 2.25], [-.42, .55]], W * .94, material(0x273044), [0, 0, 0], .08);
@@ -718,29 +736,42 @@
           addMesh(body, new THREE.BoxGeometry(.07, .18, W * .42), trimMat, [L / 2 + .1, .83, 0]);
           addLightPair(lights, new THREE.BoxGeometry(.1, .18, .3), L * .47, .82, W, accentMat, .3);
           addLightPair(lights, new THREE.BoxGeometry(.09, .14, .3), -L * .47, .72, W, material(0xff234f), .3);
+          addMesh(body, new THREE.BoxGeometry(.18, .16, .18), trimMat, [L * .33, 1.82, W / 2 + .1]);
+          addMesh(body, new THREE.BoxGeometry(.18, .16, .18), trimMat, [L * .33, 1.82, -W / 2 - .1]);
           addMesh(powertrain, new THREE.BoxGeometry(1.05, .5, W * .6), material(state.powertrain.id.includes('diesel') || state.powertrain.id === 'v8Twin' ? 0xb94b39 : 0x26c9e8), [.92, .72, 0]);
-        } else {
+        } else if (type === 'bus') {
           addProfile(body, [
-            [-L / 2, .52], [-L / 2, 2.65], [-L * .45, 2.92], [L * .43, 2.92],
-            [L / 2, 2.68], [L / 2, .52]
+            [-L / 2, .52], [-L / 2, 2.45], [-L * .45, 2.78], [L * .42, 2.78],
+            [L / 2, 2.48], [L / 2, .52]
           ], W, bodyMat, [0, 0, 0], .1);
-          for (let i = 0; i < 6; i++) {
-            const x = -L * .36 + i * L * .14;
-            addWindow(windows, new THREE.BoxGeometry(L * .105, .75, .04), material(0x142b45, .68, true), [x, 2.1, W / 2 + .02]);
-            addWindow(windows, new THREE.BoxGeometry(L * .105, .75, .04), material(0x142b45, .68, true), [x, 2.1, -W / 2 - .02]);
-            addMesh(doors, new THREE.BoxGeometry(.035, 1.35, W * .52), doorMat, [x + L * .07, 1.16, 0]);
+          addMesh(body, new THREE.BoxGeometry(L * .88, .14, W * .94), trimMat, [0, .6, 0]);
+          addMesh(body, new THREE.BoxGeometry(L * .78, .08, W * .9), trimMat, [0, 2.82, 0]);
+          for (let i = 0; i < 7; i++) {
+            const x = -L * .36 + i * L * .12;
+            [-1, 1].forEach(side => {
+              addWindow(windows, new THREE.BoxGeometry(L * .095, .78, .045), material(0x142b45, .68, true), [x, 2.0, side * (W / 2 + .025)]);
+              if (i < 6) addMesh(body, new THREE.BoxGeometry(.035, .82, .06), trimMat, [x + L * .06, 2.0, side * (W / 2 + .045)]);
+            });
           }
-          addMesh(windows, new THREE.BoxGeometry(.05, .82, W * .72), material(0x142b45, .7, true), [L * .45, 2.08, 0], [0, 0, -.2]);
-          addMesh(doors, new THREE.BoxGeometry(.08, 1.3, W * .5), doorMat, [L * .38, 1.17, 0]);
-          addMesh(body, new THREE.BoxGeometry(L * .7, .08, W * .9), trimMat, [0, 2.95, 0]);
-          addMesh(body, new THREE.BoxGeometry(.08, .18, W * .44), trimMat, [L / 2 + .06, .76, 0]);
-          addMesh(body, new THREE.BoxGeometry(L * .28, .16, W * .5), trimMat, [L * .29, 2.72, 0]);
-          addMesh(windows, new THREE.BoxGeometry(L * .22, .18, W * .42), material(0x08131f, .9, true), [L * .29, 2.72, 0]);
-          addMesh(doors, new THREE.BoxGeometry(.06, 1.42, W * .48), doorMat, [L * .41, 1.18, 0]);
-          addLightPair(lights, new THREE.BoxGeometry(.12, .2, .34), L * .47, .8, W, accentMat, .3);
-          addLightPair(lights, new THREE.BoxGeometry(.1, .16, .36), -L * .47, .75, W, material(0xff234f), .3);
-          addMesh(lights, new THREE.BoxGeometry(.08, .1, W * .38), accentMat, [L * .485, 2.45, 0]);
-          addMesh(powertrain, new THREE.BoxGeometry(1.0, .45, W * .58), material(state.powertrain.id === 'dieselTurbo' ? 0xb94b39 : 0x26c9e8), [L * .3, .72, 0]);
+          [-1, 1].forEach(side => {
+            addMesh(doors, new THREE.BoxGeometry(.62, 1.28, .05), doorMat, [L * .29, 1.16, side * (W / 2 + .045)]);
+            addMesh(doors, new THREE.BoxGeometry(.035, 1.18, .06), trimMat, [L * .29, 1.16, side * (W / 2 + .08)]);
+            addMesh(doors, new THREE.BoxGeometry(.2, .04, .07), trimMat, [L * .29, 1.77, side * (W / 2 + .08)]);
+          });
+          addMesh(windows, new THREE.BoxGeometry(.05, .68, W * .72), material(0x142b45, .72, true), [L * .41, 2.05, 0], [0, 0, -.16]);
+          addMesh(windows, new THREE.BoxGeometry(.05, .7, W * .7), material(0x142b45, .72, true), [-L * .44, 2.02, 0], [0, 0, .12]);
+          addMesh(body, new THREE.BoxGeometry(.1, 2.05, W * .92), trimMat, [L / 2 + .03, 1.5, 0]);
+          addMesh(body, new THREE.BoxGeometry(.1, 1.85, W * .92), trimMat, [-L / 2 - .03, 1.46, 0]);
+          addMesh(windows, new THREE.BoxGeometry(.04, .2, W * .5), material(0x08131f, .95, true), [L / 2 + .11, 2.5, 0]);
+          addMesh(lights, new THREE.BoxGeometry(.08, .18, .42), accentMat, [L / 2 + .1, 2.18, -.62]);
+          addMesh(lights, new THREE.BoxGeometry(.08, .18, .42), accentMat, [L / 2 + .1, 2.18, .62]);
+          addMesh(lights, new THREE.BoxGeometry(.08, .12, .7), material(0xff234f), [-L / 2 - .1, 1.98, 0]);
+          addMesh(lights, new THREE.BoxGeometry(.08, .055, W * .4), accentMat, [L / 2 + .13, 2.5, 0]);
+          addMesh(body, new THREE.BoxGeometry(.18, .22, W * .98), trimMat, [L / 2 + .1, .55, 0]);
+          addMesh(body, new THREE.BoxGeometry(.18, .2, W * .98), trimMat, [-L / 2 - .1, .54, 0]);
+          addMesh(body, new THREE.BoxGeometry(.08, .18, W * .48), accentMat, [L * .16, .72, W / 2 + .04]);
+          addMesh(powertrain, new THREE.BoxGeometry(1.7, .42, W * .62), material(state.powertrain.id === 'dieselTurbo' ? 0xb94b39 : 0x26c9e8), [-L * .2, .76, 0]);
+          addMesh(powertrain, new THREE.BoxGeometry(.48, .25, W * .45), material(0x202938), [L * .22, .72, 0]);
         }
       }
       carGroup.add(body, doors, windows, wheels, lights, powertrain);
@@ -748,15 +779,36 @@
       const underglow = new THREE.Mesh(new THREE.PlaneGeometry(Math.max(2, dimensions.length * .75), dimensions.width * .9), new THREE.MeshBasicMaterial({ color: glowColor, transparent: true, opacity: state.lighting.glow ? .35 : .12, side: THREE.DoubleSide }));
       underglow.rotation.x = -Math.PI / 2; underglow.position.y = .035; carGroup.add(underglow);
       scene.add(carGroup);
+      centerModel();
       fitCamera();
       highlightPart(selectedPart);
     }
 
+    function centerModel() {
+      if (!carGroup) return;
+      const bounds = new THREE.Box3().setFromObject(carGroup);
+      const center = bounds.getCenter(new THREE.Vector3());
+      carGroup.position.x -= center.x;
+      carGroup.position.z -= center.z;
+      carGroup.position.y -= bounds.min.y;
+    }
+
     function fitCamera() {
-      const span = Math.max(state.model.dimensions.length, state.model.dimensions.height * 2.2, 3);
-      camera.position.set(span * 1.18, span * .72, span * 1.45);
-      controls.target.set(0, state.model.dimensions.height * .45, 0);
-      controls.maxDistance = span * 4; controls.update();
+      if (!carGroup) return;
+      const bounds = new THREE.Box3().setFromObject(carGroup);
+      const size = bounds.getSize(new THREE.Vector3());
+      const center = bounds.getCenter(new THREE.Vector3());
+      const radius = Math.max(size.length() * .5, 1.5);
+      const distance = radius / Math.tan(THREE.MathUtils.degToRad(camera.fov * .5)) * 1.35;
+      const direction = new THREE.Vector3(1.25, .72, 1.55).normalize();
+      camera.position.copy(center).add(direction.multiplyScalar(distance));
+      camera.near = Math.max(.05, distance / 100);
+      camera.far = Math.max(120, distance * 8);
+      camera.updateProjectionMatrix();
+      controls.target.copy(center);
+      controls.maxDistance = distance * 4;
+      controls.minDistance = Math.max(.5, radius * .45);
+      controls.update();
     }
     function highlightPart(partId) {
       if (!carGroup) return;
@@ -826,7 +878,10 @@
       const title = section?.querySelector('.section-title');
       if (title && !title.dataset.baseTitle) title.dataset.baseTitle = title.textContent.trim();
       if (!options.length) {
-        container.innerHTML = '<div class="compatibility-note">Not applicable to this vehicle.</div>';
+        const note = kind === 'door' && state.model.type === 'bike'
+          ? 'This motorcycle has no doors; access is handled by the rider seat and frame controls.'
+          : 'Not applicable to this vehicle.';
+        container.innerHTML = `<div class="compatibility-note">${note}</div>`;
         if (title) title.textContent = `${title.dataset.baseTitle} · NOT AVAILABLE`;
         return;
       }
@@ -845,6 +900,11 @@
         circle.onclick = () => setColor(color); circle.onkeydown = event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setColor(color); } };
         colors.appendChild(circle);
       });
+      const paintTitle = document.querySelector('#paintSection .section-title');
+      if (paintTitle) {
+        if (!paintTitle.dataset.baseTitle) paintTitle.dataset.baseTitle = paintTitle.textContent.trim();
+        paintTitle.textContent = `${paintTitle.dataset.baseTitle} · ${state.color.name}`;
+      }
       renderOptionList('doorList', 'door', setDoor); renderOptionList('windowList', 'tint', setTint); renderOptionList('wheelList', 'wheel', setWheel);
       renderOptionList('lightingList', 'lighting', setLighting); renderOptionList('engineList', 'powertrain', setPowertrain);
       renderParts(); updateStats(); updateInspection();
