@@ -368,6 +368,24 @@
     @media (max-width: 700px) { .theme-toggle { align-self: flex-start; } }
     @media (prefers-reduced-motion: reduce) { .hero::after, .btn-primary::after, .hero > *:not(.neon-grid), header { animation: none !important; } }
     html[data-theme="light"] #customize p { color: var(--theme-muted) !important; }
+    html[data-theme="light"] body,
+    html[data-theme="light"] section,
+    html[data-theme="light"] #gallery,
+    html[data-theme="light"] footer { color: var(--theme-text); }
+    html[data-theme="light"] header { background: var(--theme-header); }
+    html[data-theme="light"] nav a { color: #28144f; }
+    html[data-theme="light"] section h2,
+    html[data-theme="light"] .feature-card h3 { color: #5d2bb8; }
+    html[data-theme="light"] .about p,
+    html[data-theme="light"] .feature-card,
+    html[data-theme="light"] .swiper-slide { background: var(--theme-panel); }
+    html[data-theme="light"] .feature-card p,
+    html[data-theme="light"] #gallery p,
+    html[data-theme="light"] footer p { color: var(--theme-muted); }
+    html[data-theme="light"] .swiper-slide h4,
+    html[data-theme="light"] footer h3 { color: var(--theme-text); }
+    html[data-theme="light"] #gallery { background: var(--theme-section) !important; }
+    html[data-theme="light"] .btn-primary { color: #fff; }
   </style>
 </head>
 <body>
