@@ -425,6 +425,9 @@
     .result-total { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-top: 20px; padding-top: 18px; border-top: 1px solid rgba(95,247,255,.28); position: relative; z-index: 1; }
     .result-total span { color: #a9abc5; text-transform: uppercase; letter-spacing: .12em; font-size: .75rem; }
     .result-total strong { color: var(--gold); font: 800 clamp(1.5rem, 5vw, 2.5rem) Orbitron, sans-serif; text-shadow: 0 0 18px rgba(247,201,92,.28); }
+    .result-breakdown { display: grid; gap: 6px; margin-top: 14px; position: relative; z-index: 1; color: #a9abc5; font-size: .78rem; }
+    .result-breakdown div { display: flex; justify-content: space-between; gap: 16px; }
+    .result-breakdown strong { color: #f4f3ff; font-family: Orbitron, sans-serif; font-size: .72rem; }
     .result-actions { display: flex; justify-content: flex-end; margin-top: 24px; position: relative; z-index: 1; }
     .result-action { padding: 12px 18px; border: 1px solid var(--cyan); border-radius: 999px; color: #071018; background: var(--cyan); cursor: pointer; font: 600 .72rem Orbitron, sans-serif; }
     .result-action:hover { box-shadow: 0 0 24px rgba(95,247,255,.35); transform: translateY(-2px); }
@@ -433,6 +436,8 @@
     html[data-theme="light"] .result-hero h2, html[data-theme="light"] .result-item strong { color: #28144f; }
     html[data-theme="light"] .result-subtitle, html[data-theme="light"] .result-item span, html[data-theme="light"] .result-total span { color: var(--theme-muted); }
     html[data-theme="light"] .result-item { background: rgba(255,255,255,.68); border-color: rgba(87,44,166,.16); }
+    html[data-theme="light"] .result-breakdown { color: var(--theme-muted); }
+    html[data-theme="light"] .result-breakdown strong { color: #28144f; }
     @keyframes resultFade { from { opacity: 0; } to { opacity: 1; } }
     @keyframes checkPulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 28px rgba(95,247,255,.3); } 50% { transform: scale(1.08); box-shadow: 0 0 42px rgba(95,247,255,.55); } }
     @media (max-width: 520px) { .result-grid { grid-template-columns: 1fr; } .result-hero { align-items: flex-start; } }
@@ -521,12 +526,12 @@
       </div>
 
       <div style="margin-top:auto;">
-        <button class="checkout-btn" onclick="finishBuild()">INITIATE BUILD</button>
+        <button class="checkout-btn" id="checkoutButton" onclick="finishBuild()">INITIATE BUILD</button>
       </div>
     </div>
   </div>
 
-  <section class="build-result" id="buildResult" role="dialog" aria-modal="true" aria-labelledby="resultTitle" aria-describedby="resultSubtitle" hidden>
+  <section class="build-result" id="buildResult" role="dialog" aria-modal="true" aria-live="polite" aria-labelledby="resultTitle" aria-describedby="resultSubtitle" hidden>
     <div class="result-card">
       <button class="result-close" id="resultClose" type="button" aria-label="Close build result">×</button>
       <div class="result-hero">
@@ -544,8 +549,14 @@
         <div class="result-item"><span>Wheel system</span><strong id="resultWheels">—</strong></div>
         <div class="result-item"><span>Doors / access</span><strong id="resultDoors">—</strong></div>
         <div class="result-item"><span>Windows / tint</span><strong id="resultWindows">—</strong></div>
+        <div class="result-item"><span>Max speed</span><strong id="resultSpeed">—</strong></div>
+        <div class="result-item"><span>Handling</span><strong id="resultHandling">—</strong></div>
       </div>
       <div class="result-total"><span>Estimated build total</span><strong id="resultPrice">$0</strong></div>
+      <div class="result-breakdown" aria-label="Build price breakdown">
+        <div><span>Base chassis</span><strong id="resultBasePrice">$0</strong></div>
+        <div><span>Selected upgrades</span><strong id="resultUpgradePrice">$0</strong></div>
+      </div>
       <div class="result-actions"><button class="result-action" id="resultDone" type="button">RETURN TO CONFIGURATOR</button></div>
     </div>
   </section>
@@ -1140,11 +1151,17 @@
       const modal = document.getElementById('buildResult');
       if (!modal) return;
       modal.classList.remove('is-open');
+      document.body.style.overflow = '';
       window.setTimeout(() => { modal.hidden = true; }, reduceMotion ? 0 : 350);
+      document.getElementById('checkoutButton')?.focus();
     }
     function finishBuild() {
       const modal = document.getElementById('buildResult');
       if (!modal) return;
+      const upgradePrice = totalPrice() - state.model.basePrice;
+      const power = state.powertrain || {};
+      const speed = Math.min(100, state.model.stats.speed + (power.boost || 0));
+      const handling = Math.min(100, state.model.stats.handling + (power.handling || 0) + (state.wheel?.id === 'centerlock' || state.wheel?.id === 'spoke' ? 2 : 0));
       const selections = {
         resultModel: state.model.name,
         resultPowertrain: state.powertrain?.name || 'Not selected',
@@ -1152,10 +1169,15 @@
         resultWheels: state.wheel?.name || 'Factory wheels',
         resultDoors: state.door?.name || 'Not applicable',
         resultWindows: state.tint?.name || 'Factory glass',
-        resultPrice: money(totalPrice())
+        resultSpeed: `${Math.round(speed)} / 100`,
+        resultHandling: `${Math.round(handling)} / 100`,
+        resultPrice: money(totalPrice()),
+        resultBasePrice: money(state.model.basePrice),
+        resultUpgradePrice: money(upgradePrice)
       };
       Object.entries(selections).forEach(([id, value]) => { document.getElementById(id).textContent = value; });
       modal.hidden = false;
+      document.body.style.overflow = 'hidden';
       requestAnimationFrame(() => modal.classList.add('is-open'));
       document.getElementById('resultClose')?.focus();
     }
