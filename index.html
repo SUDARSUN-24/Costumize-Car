@@ -267,12 +267,7 @@
         var(--ink);
       line-height: 1.5;
     }
-    body::after {
-      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1; opacity: .22;
-      background-image: radial-gradient(rgba(95,247,255,.55) 1px, transparent 1px);
-      background-size: 42px 42px; animation: drift 24s linear infinite;
-    }
-    @keyframes drift { to { background-position: 42px 84px; } }
+    body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1; }
     header { padding: 18px clamp(20px, 6vw, 88px); border-bottom-color: rgba(95,247,255,.35); }
     header h1 { font-size: clamp(1.1rem, 2vw, 1.55rem); }
     nav { gap: clamp(12px, 2vw, 28px); }
@@ -287,9 +282,11 @@
     }
     .hero::before {
       content: ""; position: absolute; inset: 0; z-index: 1;
-      background: linear-gradient(90deg, rgba(95,247,255,.08) 1px, transparent 1px), linear-gradient(rgba(188,19,254,.08) 1px, transparent 1px);
-      background-size: 80px 80px; mask-image: linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent);
+      background: linear-gradient(108deg, transparent 32%, rgba(95,247,255,.08) 43%, rgba(255,255,255,.5) 48%, rgba(188,19,254,.12) 53%, transparent 64%);
+      background-size: 220% 100%;
+      mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 82%, transparent);
       pointer-events: none;
+      animation: carReflection 7s ease-in-out infinite;
     }
     .hero h2 { max-width: 900px; font-size: clamp(2.2rem, 7vw, 5.8rem); line-height: 1.05; letter-spacing: .05em; }
     .hero h2::first-line { color: #fff; }
@@ -370,7 +367,8 @@
     html[data-theme="light"] .hero p { color: #29324d; background: rgba(255,255,255,.72); border-color: rgba(87,44,166,.25); }
     html[data-theme="light"] #customize { background: linear-gradient(135deg, rgba(188,19,254,.1), rgba(0, 190, 210, .1)); }
     @media (max-width: 700px) { .theme-toggle { align-self: flex-start; } }
-    @media (prefers-reduced-motion: reduce) { .hero::after, .btn-primary::after, .hero > *:not(.neon-grid), header { animation: none !important; } }
+    @keyframes carReflection { 0%, 22% { background-position: 120% 0; opacity: 0; } 42%, 62% { background-position: 0 0; opacity: 1; } 82%, 100% { background-position: -120% 0; opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .hero::before, .hero::after, .btn-primary::after, .hero > *:not(.neon-grid), header { animation: none !important; } }
     html[data-theme="light"] #customize p { color: var(--theme-muted) !important; }
     html[data-theme="light"] body,
     html[data-theme="light"] section,
@@ -442,7 +440,6 @@
   </header>
 
   <section class="hero" data-aos="fade-up">
-    <div class="neon-grid"></div>
     <span class="eyebrow">Vehicle systems / 01 — online</span>
     <h2>Welcome to Velonix Customs</h2>
     <p>Transforming every vehicle into a masterpiece — from cars and bikes to trucks and electric beasts. Precision, power, and creativity define our craft.</p>

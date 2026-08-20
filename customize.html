@@ -578,7 +578,6 @@
       centerlock: { id: 'centerlock', name: 'Centerlock Track', price: 11800, icon: 'fa-bullseye', spec: 'Lightweight motorsport set' },
       allTerrain: { id: 'allTerrain', name: 'All-Terrain Beadlock', price: 7600, icon: 'fa-mountain', spec: 'Reinforced off-road sidewall' },
       heavy: { id: 'heavy', name: 'Heavy-Duty Steel', price: 2800, icon: 'fa-circle-notch', spec: 'Load-rated commercial steel' },
-      transit: { id: 'transit', name: 'Transit Efficiency', price: 1800, icon: 'fa-bus', spec: 'Low-rolling-resistance set' },
       spoke: { id: 'spoke', name: 'Performance Spoke', price: 2400, icon: 'fa-certificate', spec: 'Lightweight 17 in spoke' },
       disc: { id: 'disc', name: 'Solid Disc', price: 4200, icon: 'fa-compact-disc', spec: 'Aero disc cover' }
     };
@@ -619,16 +618,6 @@
         tints: [option('clear', 'Optical Clear', 0, 'fa-window-maximize', 'Wide-visibility commercial glass'), option('privacy', 'Privacy 20', 1100, 'fa-eye-slash', 'Glare reduction for long-haul routes')],
         lights: [option('fleet', 'Fleet Marker Set', 0, 'fa-lightbulb', 'Road-legal marker and headlamp package'), option('matrix', 'Adaptive Haul Beam', 2400, 'fa-sun', 'Adaptive long-range LED beam'), option('underglow', 'Chassis Underglow', 1800, 'fa-rainbow', 'Low-intensity safety light rails', { glow: true, lightColor: 0xf7c95c })],
         powertrains: [option('dieselTurbo', 'Turbo Diesel', 0, 'fa-gas-pump', '12 L-class turbo diesel heavy-haul system', { boost: 0, acc: 0 }), option('dieselHybrid', 'Diesel-Electric Assist', 18500, 'fa-bolt', 'Turbo diesel with regenerative axle assist', { boost: 5, acc: 5 }), option('v8Twin', 'V8 Twin-Turbo', 12500, 'fa-fire', '8 L-class twin-turbo vocational V8', { boost: 4, acc: 2 })]
-      },
-      {
-        id: 'bus', name: 'Neon Transit', type: 'bus', basePrice: 240000, icon: 'fa-bus',
-        description: 'Low-floor electric city bus with route lighting and panoramic passenger glazing.',
-        stats: { speed: 50, acc: 34, handling: 59 }, dimensions: { length: 8, width: 2.6, height: 3.1 },
-        paints: ['white', 'cyan', 'purple', 'gold', 'black'], wheels: ['transit', 'heavy'],
-        doors: [option('transit', 'Transit Fold', 0, 'fa-door-open', 'Wide, low-floor passenger doors'), option('panoramic', 'Panoramic Entry', 4600, 'fa-door-open', 'Glass-forward entry door package')],
-        tints: [option('clear', 'Passenger Clear', 0, 'fa-window-maximize', 'High-visibility passenger glass'), option('privacy', 'Solar Privacy', 3800, 'fa-eye-slash', 'Solar-control privacy glazing')],
-        lights: [option('transit', 'Route LED', 0, 'fa-lightbulb', 'Route-safe exterior LED package'), option('matrix', 'Matrix Transit', 5200, 'fa-sun', 'Adaptive headlamps and cornering lamps'), option('underglow', 'Platform Underglow', 2400, 'fa-rainbow', 'Boarding-zone light rails', { glow: true, lightColor: 0x00e8ff })],
-        powertrains: [option('dualMotor', 'Electric Dual-Motor', 0, 'fa-bolt', 'Battery-electric dual-motor transit system', { boost: 0, acc: 0 }), option('dieselTurbo', 'Turbo Diesel', 19000, 'fa-gas-pump', '6.7 L-class turbo diesel transit system', { boost: 2, acc: 2 }), option('fuelCell', 'Hydrogen Fuel-Cell', 42000, 'fa-atom', 'Fuel-cell electric drive with battery buffer', { boost: 4, acc: 4 })]
       },
       {
         id: 'titan', name: 'Titan Edge Bike', type: 'bike', basePrice: 52000, icon: 'fa-motorcycle',

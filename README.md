@@ -27,7 +27,7 @@ This project demonstrates front-end development, UI/UX design, and 3D rendering 
 ## ⚙️ Features
 
 - 🎨 Real-time vehicle customization
-- 🚘 Multiple vehicle types (cars, bikes, trucks, bus)
+- 🚘 Multiple vehicle types (cars, bikes, trucks, and SUVs)
 - 💰 Dynamic pricing system
 - 📊 Live performance stats (speed, acceleration, handling)
 - 🌐 Multi-page navigation (Home, Garage, Configurator)
