@@ -3,6 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    (function () {
+      try {
+        var savedTheme = localStorage.getItem('velonix-theme');
+        if (savedTheme === 'light' || savedTheme === 'dark') document.documentElement.dataset.theme = savedTheme;
+      } catch (error) {}
+    }());
+  </script>
   <title>Velonix Configurator | Holographic Lab</title>
   <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3202/3202926.png" type="image/png">
   
@@ -309,12 +317,57 @@
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <style>
+    /* Shared theme system and configurator motion polish */
+    :root {
+      --theme-bg: #060713; --theme-text: #f4f3ff; --theme-muted: #a9abc5;
+      --theme-panel: rgba(7, 8, 18, .84); --theme-header: rgba(5, 5, 15, .82);
+      --theme-border: rgba(95, 247, 255, .24); --theme-shadow: rgba(0, 0, 0, .35);
+    }
+    html[data-theme="light"] {
+      --theme-bg: #f3f5ff; --theme-text: #17142d; --theme-muted: #4e5874;
+      --theme-panel: rgba(255, 255, 255, .86); --theme-header: rgba(248, 249, 255, .9);
+      --theme-border: rgba(87, 44, 166, .24); --theme-shadow: rgba(35, 24, 83, .16);
+    }
+    body { color: var(--theme-text); transition: background-color .45s ease, color .45s ease; }
+    header { flex-wrap: wrap; background: var(--theme-header); border-bottom-color: var(--theme-border); box-shadow: 0 5px 20px var(--theme-shadow); animation: headerEnter .8s cubic-bezier(.2,.8,.2,1) both; transition: background .45s ease, border-color .45s ease, box-shadow .45s ease; }
+    .theme-toggle { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--cyan); border-radius: 999px; padding: 8px 13px; color: var(--theme-text); background: rgba(95,247,255,.08); font: 600 .72rem Orbitron, sans-serif; letter-spacing: .08em; cursor: pointer; transition: transform .25s ease, background .25s ease, color .25s ease, box-shadow .25s ease; }
+    .theme-toggle:hover { transform: translateY(-2px); color: #071018; background: var(--cyan); box-shadow: 0 0 18px rgba(95,247,255,.35); }
+    .theme-toggle:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+    .theme-icon { font-size: 1rem; line-height: 1; }
+    .configurator-wrapper { transition: background .45s ease; }
+    .controls-panel, .panel-header, .option-card, .stats-container, .inspection-panel { transition: background .45s ease, border-color .35s ease, box-shadow .35s ease, color .35s ease, transform .35s ease; }
+    .controls-panel { background: var(--theme-panel); border-left-color: var(--theme-border); }
+    .panel-header { background: linear-gradient(135deg, rgba(188,19,254,.13), transparent); }
+    .option-card:hover, .part-btn:hover, .inspection-action:hover { transform: translateY(-3px); }
+    .checkout-btn { position: relative; overflow: hidden; isolation: isolate; }
+    .checkout-btn::after { content: ""; position: absolute; inset: 0 auto 0 -130%; width: 55%; transform: skewX(-20deg); background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent); animation: buttonShimmer 4.8s ease-in-out infinite; pointer-events: none; }
+    .preview-stage { animation: previewEnter .9s cubic-bezier(.2,.8,.2,1) both; }
+    @keyframes headerEnter { from { opacity: 0; transform: translateY(-18px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes previewEnter { from { opacity: 0; transform: scale(.985); } to { opacity: 1; transform: scale(1); } }
+    @keyframes buttonShimmer { 0%, 55% { left: -130%; } 75%, 100% { left: 140%; } }
+    html[data-theme="light"] body { background: radial-gradient(circle at 18% 20%, rgba(188,19,254,.1), transparent 30rem), radial-gradient(circle at 82% 75%, rgba(0,190,210,.11), transparent 25rem), var(--theme-bg); }
+    html[data-theme="light"] .configurator-wrapper { background: radial-gradient(circle at 30% 45%, rgba(224,215,255,.85), transparent 48%), #eef2ff; }
+    html[data-theme="light"] .controls-panel { color: var(--theme-text); background: var(--theme-panel); }
+    html[data-theme="light"] .panel-header, html[data-theme="light"] .section-title, html[data-theme="light"] .option-card, html[data-theme="light"] .inspection-panel, html[data-theme="light"] .stats-container { color: var(--theme-text); }
+    html[data-theme="light"] .section-title { background: rgba(255,255,255,.52); }
+    html[data-theme="light"] .option-card, html[data-theme="light"] .part-btn { background: rgba(255,255,255,.7); border-color: rgba(87,44,166,.22); }
+    html[data-theme="light"] .option-cost, html[data-theme="light"] .stat-label, html[data-theme="light"] .inspection-panel p { color: var(--theme-muted); }
+    html[data-theme="light"] .stats-container, html[data-theme="light"] .inspection-panel { background: rgba(255,255,255,.74); }
+    html[data-theme="light"] .stat-label { color: #4e5874; }
+    @media (prefers-reduced-motion: reduce) { header, .preview-stage, .checkout-btn::after { animation: none !important; } }
+    html[data-theme="light"] .back-btn { color: #28144f; border-color: rgba(87,44,166,.28); }
+    html[data-theme="light"] .part-btn { color: #35405c; }
+    html[data-theme="light"] .inspection-panel h3 { color: #28144f; }
+    html[data-theme="light"] .panel-header .panel-kicker { color: var(--theme-muted) !important; }
+  </style>
 </head>
 <body>
 
   <header>
     <h1>Velonix Hologram Lab</h1>
     <a href="Garage.html" class="back-btn"><i class="fas fa-arrow-left"></i> Exit Lab</a>
+    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch to light theme" title="Switch to light theme" aria-pressed="false"><span class="theme-icon" aria-hidden="true">☼</span><span class="theme-label">Light</span></button>
   </header>
 
   <div class="configurator-wrapper">
@@ -991,6 +1044,27 @@
       syncSelections(); setupThree(); renderUI();
     };
   })();
+  </script>
+  <script>
+    (function () {
+      var themeKey = 'velonix-theme';
+      var toggle = document.querySelector('[data-theme-toggle]');
+      if (!toggle) return;
+      function applyTheme(theme) {
+        var normalized = theme === 'light' ? 'light' : 'dark';
+        var isLight = normalized === 'light';
+        document.documentElement.dataset.theme = normalized;
+        try { localStorage.setItem(themeKey, normalized); } catch (error) {}
+        toggle.setAttribute('aria-pressed', String(isLight));
+        toggle.setAttribute('aria-label', isLight ? 'Switch to dark theme' : 'Switch to light theme');
+        toggle.title = isLight ? 'Switch to dark theme' : 'Switch to light theme';
+        toggle.innerHTML = '<span class="theme-icon" aria-hidden="true">' + (isLight ? '☾' : '☼') + '</span><span class="theme-label">' + (isLight ? 'Dark' : 'Light') + '</span>';
+      }
+      toggle.addEventListener('click', function () {
+        applyTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
+      });
+      applyTheme(document.documentElement.dataset.theme || 'dark');
+    }());
   </script>
 </body>
 </html>

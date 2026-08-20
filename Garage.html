@@ -3,6 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    (function () {
+      try {
+        var savedTheme = localStorage.getItem('velonix-theme');
+        if (savedTheme === 'light' || savedTheme === 'dark') document.documentElement.dataset.theme = savedTheme;
+      } catch (error) {}
+    }());
+  </script>
   <title>Velonix Garage | The Showroom</title>
   <meta name="description" content="Browse Velonix base chassis and signature builds, then enter the hologram lab to shape your next machine.">
   <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3202/3202926.png" type="image/png">
@@ -180,6 +188,42 @@
       *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
     }
   </style>
+  <style>
+    /* Shared theme system and motion polish */
+    :root {
+      --theme-bg: #070812; --theme-text: #f4f3ff; --theme-muted: #a9abc5;
+      --theme-panel: rgba(15, 16, 31, .8); --theme-header: rgba(5, 5, 15, .82);
+      --theme-section: rgba(3, 4, 12, .72); --theme-border: rgba(95, 247, 255, .24); --theme-shadow: rgba(0, 0, 0, .35);
+    }
+    html[data-theme="light"] {
+      --theme-bg: #f3f5ff; --theme-text: #17142d; --theme-muted: #4e5874;
+      --theme-panel: rgba(255, 255, 255, .84); --theme-header: rgba(248, 249, 255, .88);
+      --theme-section: rgba(232, 237, 252, .84); --theme-border: rgba(87, 44, 166, .24); --theme-shadow: rgba(35, 24, 83, .16);
+    }
+    body { color: var(--theme-text); transition: background-color .45s ease, color .45s ease; }
+    header { flex-wrap: wrap; background: var(--theme-header); border-bottom-color: var(--theme-border); box-shadow: 0 4px 30px var(--theme-shadow); animation: headerEnter .8s cubic-bezier(.2,.8,.2,1) both; transition: background .45s ease, border-color .45s ease, box-shadow .45s ease; }
+    header h1 { text-shadow: 0 0 15px var(--neon-glow); }
+    .theme-toggle { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--cyan); border-radius: 999px; padding: 8px 13px; color: var(--theme-text); background: rgba(95,247,255,.08); font: 600 .72rem Orbitron, sans-serif; letter-spacing: .08em; cursor: pointer; transition: transform .25s ease, background .25s ease, color .25s ease, box-shadow .25s ease; }
+    .theme-toggle:hover { transform: translateY(-2px); color: #071018; background: var(--cyan); box-shadow: 0 0 18px rgba(95,247,255,.35); }
+    .theme-toggle:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+    .theme-icon { font-size: 1rem; line-height: 1; }
+    section { transition: background-color .45s ease, color .45s ease; animation: sectionEnter .8s cubic-bezier(.2,.8,.2,1) both; }
+    .swiper-slide, .sig-card { background: var(--theme-panel); border-color: var(--theme-border); box-shadow: 0 12px 30px var(--theme-shadow); }
+    .swiper-slide h4, .sig-content h3 { color: var(--theme-text); }
+    .section-desc, .sig-content p, .spec { color: var(--theme-muted); }
+    .sig-specs { border-top-color: var(--theme-border); }
+    .back-btn { position: relative; overflow: hidden; isolation: isolate; }
+    .back-btn::after { content: ""; position: absolute; inset: 0 auto 0 -130%; width: 55%; transform: skewX(-20deg); background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent); animation: buttonShimmer 4.8s ease-in-out infinite; pointer-events: none; }
+    @keyframes headerEnter { from { opacity: 0; transform: translateY(-18px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes sectionEnter { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes buttonShimmer { 0%, 55% { left: -130%; } 75%, 100% { left: 140%; } }
+    html[data-theme="light"] body { background: radial-gradient(circle at 12% 12%, rgba(188,19,254,.11), transparent 30rem), radial-gradient(circle at 88% 65%, rgba(0, 190, 210, .11), transparent 26rem), var(--theme-bg); }
+    html[data-theme="light"] section:nth-of-type(2) { background: var(--theme-section) !important; }
+    html[data-theme="light"] .swiper-slide, html[data-theme="light"] .sig-card { color: var(--theme-text); }
+    html[data-theme="light"] .sig-badge { color: #201634; }
+    @media (prefers-reduced-motion: reduce) { section, header, .back-btn::after { animation: none !important; } }
+    html[data-theme="light"] .back-btn { color: #28144f; border-color: rgba(87,44,166,.28); }
+  </style>
 </head>
 <body>
 
@@ -187,6 +231,7 @@
     <h1>Velonix Garage</h1>
     <!-- Link back to Main Page -->
     <a href="index.html" class="back-btn"><i class="fas fa-home"></i> Home</a>
+    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch to light theme" title="Switch to light theme" aria-pressed="false"><span class="theme-icon" aria-hidden="true">☼</span><span class="theme-label">Light</span></button>
   </header>
 
   <!-- SECTION 1: START YOUR BUILD (Linked to Configurator) -->
@@ -340,6 +385,27 @@
         1200: { slidesPerView: 3 } 
       }
     });
+  </script>
+  <script>
+    (function () {
+      var themeKey = 'velonix-theme';
+      var toggle = document.querySelector('[data-theme-toggle]');
+      if (!toggle) return;
+      function applyTheme(theme) {
+        var normalized = theme === 'light' ? 'light' : 'dark';
+        var isLight = normalized === 'light';
+        document.documentElement.dataset.theme = normalized;
+        try { localStorage.setItem(themeKey, normalized); } catch (error) {}
+        toggle.setAttribute('aria-pressed', String(isLight));
+        toggle.setAttribute('aria-label', isLight ? 'Switch to dark theme' : 'Switch to light theme');
+        toggle.title = isLight ? 'Switch to dark theme' : 'Switch to light theme';
+        toggle.innerHTML = '<span class="theme-icon" aria-hidden="true">' + (isLight ? '☾' : '☼') + '</span><span class="theme-label">' + (isLight ? 'Dark' : 'Light') + '</span>';
+      }
+      toggle.addEventListener('click', function () {
+        applyTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
+      });
+      applyTheme(document.documentElement.dataset.theme || 'dark');
+    }());
   </script>
 </body>
 </html>
