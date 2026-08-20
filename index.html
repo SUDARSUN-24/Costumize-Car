@@ -7,6 +7,10 @@
     (function () {
       try {
         var savedTheme = localStorage.getItem('velonix-theme');
+        if (savedTheme !== 'light' && savedTheme !== 'dark') {
+          var cookieMatch = document.cookie.match(/(?:^|;\s*)velonix-theme=(light|dark)/);
+          savedTheme = cookieMatch ? cookieMatch[1] : null;
+        }
         if (savedTheme === 'light' || savedTheme === 'dark') document.documentElement.dataset.theme = savedTheme;
       } catch (error) {}
     }());
@@ -386,6 +390,14 @@
     html[data-theme="light"] footer h3 { color: var(--theme-text); }
     html[data-theme="light"] #gallery { background: var(--theme-section) !important; }
     html[data-theme="light"] .btn-primary { color: #fff; }
+    .theme-toggle { position: relative; overflow: hidden; }
+    .theme-toggle::after { content: ""; position: absolute; inset: 0 auto 0 -90%; width: 45%; transform: skewX(-22deg); background: rgba(255,255,255,.45); animation: themeSweep 5s ease-in-out infinite; pointer-events: none; }
+    .feature-card, .swiper-slide { animation: cardLift 6s ease-in-out infinite; }
+    .feature-card:nth-child(2), .swiper-slide:nth-child(2) { animation-delay: -.8s; }
+    .feature-card:nth-child(3), .swiper-slide:nth-child(3) { animation-delay: -1.6s; }
+    @keyframes themeSweep { 0%, 60% { left: -90%; } 82%, 100% { left: 140%; } }
+    @keyframes cardLift { 0%, 100% { box-shadow: 0 12px 30px var(--theme-shadow); } 50% { box-shadow: 0 16px 38px rgba(95,247,255,.13); } }
+    @media (prefers-reduced-motion: reduce) { .theme-toggle::after, .feature-card, .swiper-slide { animation: none !important; } }
   </style>
 </head>
 <body>
@@ -520,7 +532,9 @@
         var normalized = theme === 'light' ? 'light' : 'dark';
         var isLight = normalized === 'light';
         document.documentElement.dataset.theme = normalized;
+        document.documentElement.style.colorScheme = normalized;
         try { localStorage.setItem(themeKey, normalized); } catch (error) {}
+        document.cookie = themeKey + '=' + normalized + '; path=/; max-age=31536000; SameSite=Lax';
         toggle.setAttribute('aria-pressed', String(isLight));
         toggle.setAttribute('aria-label', isLight ? 'Switch to dark theme' : 'Switch to light theme');
         toggle.title = isLight ? 'Switch to dark theme' : 'Switch to light theme';
