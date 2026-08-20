@@ -209,6 +209,78 @@
         .stats-container { bottom: 10px; left: 10px; width: calc(100% - 20px); }
     }
   </style>
+  <style>
+    :root {
+      --cyan: #5ff7ff;
+      --gold: #f7c95c;
+      --ink: #060713;
+      --muted: #a9abc5;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background:
+        radial-gradient(circle at 18% 20%, rgba(188,19,254,.15), transparent 30rem),
+        radial-gradient(circle at 82% 75%, rgba(95,247,255,.08), transparent 25rem),
+        var(--ink);
+      line-height: 1.45;
+    }
+    body::after {
+      content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .18;
+      background-image: radial-gradient(rgba(95,247,255,.5) 1px, transparent 1px);
+      background-size: 44px 44px; animation: drift 25s linear infinite;
+    }
+    @keyframes drift { to { background-position: 44px 88px; } }
+    header { padding: 18px clamp(20px, 4vw, 60px); background: rgba(5,5,15,.8); backdrop-filter: blur(16px); border-bottom-color: rgba(95,247,255,.38); }
+    header h1 { font-size: clamp(1rem, 2vw, 1.45rem); }
+    .back-btn { border-color: rgba(95,247,255,.35); border-radius: 999px; padding: 10px 17px; }
+    .back-btn:focus-visible, .option-card:focus-visible, .color-circle:focus-visible, .checkout-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+    .configurator-wrapper {
+      min-height: calc(100vh - 72px); height: calc(100vh - 72px);
+      background: radial-gradient(circle at 30% 45%, rgba(36,20,58,.75), transparent 48%), #05050d;
+    }
+    .preview-stage { min-width: 0; background: linear-gradient(135deg, rgba(95,247,255,.03), transparent 45%); }
+    .preview-stage::before {
+      content: "HOLOGRAM / LIVE PREVIEW"; position: absolute; top: 22px; left: 30px; z-index: 20;
+      color: var(--cyan); font: 600 .7rem Orbitron, sans-serif; letter-spacing: .16em;
+    }
+    .holo-overlay { background-size: 48px 48px; opacity: .8; }
+    .stats-container { background: rgba(7,8,18,.78); border-color: rgba(95,247,255,.58); box-shadow: 0 0 30px rgba(95,247,255,.08); }
+    .stats-container h4 { color: var(--cyan); }
+    .progress-fill { background: linear-gradient(90deg, var(--neon-color), var(--cyan)); }
+    .controls-panel { min-width: 340px; background: rgba(7,8,18,.84); border-left-color: rgba(95,247,255,.18); }
+    .panel-header { padding: 25px; background: linear-gradient(135deg, rgba(188,19,254,.13), transparent); }
+    .panel-header .panel-kicker { color: var(--cyan) !important; font-size: .7rem !important; letter-spacing: .15em !important; }
+    .total-price { color: var(--gold); text-shadow: 0 0 15px rgba(247,201,92,.35); }
+    .control-section { border-bottom-color: rgba(255,255,255,.1); }
+    .section-title { padding: 18px 22px; letter-spacing: .04em; }
+    .options-grid { padding: 18px 22px 24px; gap: 12px; }
+    .option-card { background: rgba(255,255,255,.045); border-color: rgba(255,255,255,.14); border-radius: 10px; min-height: 92px; }
+    .option-card:hover { border-color: var(--cyan); box-shadow: 0 8px 22px rgba(95,247,255,.1); }
+    .option-card.active { border-color: var(--cyan); background: rgba(95,247,255,.08); box-shadow: 0 0 18px rgba(95,247,255,.12) inset; }
+    .option-card.active i { color: var(--cyan); text-shadow: 0 0 10px var(--cyan); }
+    .option-cost { color: var(--gold); }
+    .color-grid { padding: 18px 22px 24px; }
+    .color-circle { border-color: rgba(255,255,255,.3); width: 42px; height: 42px; }
+    .color-circle.active { border-color: var(--cyan); box-shadow: 0 0 16px var(--cyan); }
+    .checkout-btn { background: linear-gradient(100deg, var(--neon-color), #7b4dff); min-height: 68px; }
+    .checkout-btn:hover { background: linear-gradient(100deg, #d900ff, var(--cyan)); color: #071018; }
+    @media (max-width: 900px) {
+      .configurator-wrapper { height: auto; min-height: 0; }
+      .preview-stage { height: min(62vh, 620px); min-height: 420px; }
+      .controls-panel { min-width: 0; }
+      .stats-container { bottom: 18px; left: 18px; width: min(320px, calc(100% - 36px)); }
+    }
+    @media (max-width: 520px) {
+      header { gap: 12px; }
+      .preview-stage { min-height: 370px; }
+      .preview-stage::before { left: 18px; font-size: .58rem; }
+      .stats-container { padding: 15px; }
+      .options-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -245,7 +317,7 @@
 
     <div class="controls-panel">
       <div class="panel-header">
-        <p style="color:#777; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Est. Build Cost</p>
+        <p class="panel-kicker" style="color:#777; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Est. Build Cost / 04-step calibration</p>
         <h2 class="total-price" id="totalPrice">$0</h2>
       </div>
 
@@ -342,6 +414,7 @@
     // 2. THREE.JS 3D ENGINE
     // ==========================================
     let scene, camera, renderer, carGroup, controls;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let gridHelper; 
 
     function initThreeJS() {
@@ -360,7 +433,7 @@
 
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.autoRotate = true;
+        controls.autoRotate = !reduceMotion;
         controls.autoRotateSpeed = 1.0;
         controls.enablePan = false;
 
@@ -609,7 +682,7 @@
         requestAnimationFrame(animate);
         controls.update();
         const time = Date.now() * 0.002;
-        if(carGroup) carGroup.position.y = Math.sin(time) * 0.05; 
+        if(carGroup && !reduceMotion) carGroup.position.y = Math.sin(time) * 0.05;
         renderer.render(scene, camera);
     }
 
@@ -638,9 +711,16 @@
         colors.forEach(c => {
             const div = document.createElement('div');
             div.className = `color-circle ${c.hex === state.color.hex ? 'active' : ''}`;
+            div.setAttribute('role', 'button');
+            div.setAttribute('tabindex', '0');
+            div.setAttribute('aria-label', c.name);
+            div.title = c.name;
             div.style.backgroundColor = '#' + c.hex.toString(16).padStart(6, '0');
             div.style.boxShadow = `0 0 10px #${c.hex.toString(16)}`;
             div.onclick = () => setColor(c);
+            div.onkeydown = (event) => {
+                if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setColor(c); }
+            };
             colorContainer.appendChild(div);
         });
 
@@ -662,7 +742,13 @@
     function createCard(title, price, iconClass, isActive, onClick) {
         const div = document.createElement('div');
         div.className = `option-card ${isActive ? 'active' : ''}`;
+        div.setAttribute('role', 'button');
+        div.setAttribute('tabindex', '0');
+        div.setAttribute('aria-pressed', isActive ? 'true' : 'false');
         div.onclick = onClick;
+        div.onkeydown = (event) => {
+            if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onClick(); }
+        };
         div.innerHTML = `
             <i class="fas ${iconClass}"></i>
             <span class="option-name">${title}</span>

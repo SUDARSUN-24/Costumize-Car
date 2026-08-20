@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Velonix Garage | The Showroom</title>
+  <meta name="description" content="Browse Velonix base chassis and signature builds, then enter the hologram lab to shape your next machine.">
   <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3202/3202926.png" type="image/png">
   
   <!-- LIBRARIES -->
@@ -120,6 +121,65 @@
     .sig-price { color: #ffd700; font-family: 'Orbitron'; font-size: 1.2rem; display: block; margin-top: 10px; text-align: right; }
 
   </style>
+  <style>
+    :root {
+      --cyan: #5ff7ff;
+      --gold: #f7c95c;
+      --ink: #070812;
+      --muted: #a9abc5;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background:
+        radial-gradient(circle at 12% 12%, rgba(188,19,254,.15), transparent 30rem),
+        radial-gradient(circle at 88% 65%, rgba(95,247,255,.07), transparent 26rem),
+        var(--ink);
+      line-height: 1.5;
+    }
+    body::after {
+      content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .2;
+      background-image: radial-gradient(rgba(95,247,255,.5) 1px, transparent 1px);
+      background-size: 44px 44px; animation: drift 26s linear infinite;
+    }
+    @keyframes drift { to { background-position: 44px 88px; } }
+    header { padding: 18px clamp(20px, 6vw, 88px); background: rgba(5,5,15,.78); backdrop-filter: blur(16px); border-bottom-color: rgba(95,247,255,.35); }
+    header h1 { font-size: clamp(1.05rem, 2vw, 1.45rem); }
+    .back-btn { border-color: rgba(95,247,255,.35); border-radius: 999px; padding: 10px 17px; }
+    .back-btn:focus-visible, .swiper-slide:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
+    section { padding: clamp(72px, 9vw, 120px) 6%; border-bottom-color: rgba(255,255,255,.08); }
+    section:nth-of-type(2) { background: rgba(3,4,12,.72) !important; }
+    section h2 { font-size: clamp(1.7rem, 4vw, 3rem); }
+    .section-desc { color: var(--muted); max-width: 680px; line-height: 1.7; }
+    .showroom-meta { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px 28px; margin: -25px auto 40px; color: var(--cyan); font: 600 .72rem Orbitron, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+    .showroom-meta span::before { content: "◆"; color: var(--gold); margin-right: 8px; font-size: .55rem; }
+    .swiper { max-width: 1240px; margin: 0 auto; padding: 10px 6px 55px; }
+    .swiper-slide {
+      background: rgba(15,16,31,.78); border-color: rgba(188,19,254,.25);
+      box-shadow: 0 12px 30px rgba(0,0,0,.2); transition: transform .35s ease, border-color .35s ease, box-shadow .35s ease;
+    }
+    .swiper-slide:hover { border-color: var(--cyan); box-shadow: 0 18px 45px rgba(95,247,255,.15); }
+    .swiper-slide img { filter: saturate(.82) contrast(1.08); transition: transform .55s ease, filter .55s ease; }
+    .swiper-slide:hover img { transform: scale(1.05); filter: saturate(1.15) contrast(1.1); }
+    .swiper-slide h4 { padding: 0 14px; }
+    .swiper-pagination-bullet-active { background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+    .signature-grid { max-width: 1240px; margin: 0 auto; gap: 24px; }
+    .sig-card { background: rgba(15,16,31,.8); border-color: rgba(188,19,254,.25); box-shadow: 0 12px 30px rgba(0,0,0,.2); }
+    .sig-card:hover { border-color: var(--gold); box-shadow: 0 18px 45px rgba(247,201,92,.16); }
+    .sig-img-box { height: 230px; overflow: hidden; }
+    .sig-img-box img { transition: transform .6s ease; filter: saturate(.8) contrast(1.08); }
+    .sig-card:hover .sig-img-box img { transform: scale(1.06); }
+    .sig-badge { background: var(--gold); }
+    .sig-content p { color: var(--muted); }
+    .sig-price { color: var(--gold); }
+    @media (max-width: 640px) {
+      header { gap: 12px; }
+      .sig-content { padding: 21px; }
+      .sig-specs { flex-wrap: wrap; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
 </head>
 <body>
 
@@ -133,42 +193,45 @@
   <section data-aos="fade-up">
     <h2>Select Base Chassis</h2>
     <p class="section-desc">Choose a platform to begin your custom project. The gallery is now automated to showcase our fleet.</p>
+    <div class="showroom-meta" aria-label="Garage highlights">
+      <span>6 chassis classes</span><span>Real-time preview</span><span>No wrong turns</span>
+    </div>
     
     <div class="swiper">
       <div class="swiper-wrapper">
         
         <!-- LINK 1: Spectre (Car) -->
-        <div class="swiper-slide" onclick="window.location.href='customize.html?model=spectre'">
+        <div class="swiper-slide" role="link" tabindex="0" onclick="window.location.href='customize.html?model=spectre'" onkeydown="if(event.key==='Enter'||event.key===' '){window.location.href='customize.html?model=spectre'}">
           <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2070&auto=format&fit=crop" alt="Spectre">
           <h4>Street Racer — Spectre</h4>
         </div>
 
         <!-- LINK 2: Titan Bike (FIXED IMAGE) -->
-        <div class="swiper-slide" onclick="window.location.href='customize.html?model=titan'">
+        <div class="swiper-slide" role="link" tabindex="0" onclick="window.location.href='customize.html?model=titan'" onkeydown="if(event.key==='Enter'||event.key===' '){window.location.href='customize.html?model=titan'}">
           <img src="https://images.unsplash.com/photo-1609630875171-b1321377ee65?q=80&w=2070&auto=format&fit=crop" alt="Titan Bike">
           <h4>Future Cycle — Titan</h4>
         </div>
 
         <!-- LINK 3: Behemoth (SUV) -->
-        <div class="swiper-slide" onclick="window.location.href='customize.html?model=behemoth'">
+        <div class="swiper-slide" role="link" tabindex="0" onclick="window.location.href='customize.html?model=behemoth'" onkeydown="if(event.key==='Enter'||event.key===' '){window.location.href='customize.html?model=behemoth'}">
           <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop" alt="Behemoth">
           <h4>Heavy Duty — Behemoth</h4>
         </div>
 
         <!-- LINK 4: Vortex (Hyper Car) -->
-        <div class="swiper-slide" onclick="window.location.href='customize.html?model=vortex'">
-          <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop" alt="Vortex">
+        <div class="swiper-slide" role="link" tabindex="0" onclick="window.location.href='customize.html?model=vortex'" onkeydown="if(event.key==='Enter'||event.key===' '){window.location.href='customize.html?model=vortex'}">
+          <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=2070&auto=format&fit=crop" alt="Red Vortex hypercar">
           <h4>Hyper Velocity — Vortex</h4>
         </div>
 
         <!-- LINK 5: Neon Transit (Bus) -->
-        <div class="swiper-slide" onclick="window.location.href='customize.html?model=bus'">
+        <div class="swiper-slide" role="link" tabindex="0" onclick="window.location.href='customize.html?model=bus'" onkeydown="if(event.key==='Enter'||event.key===' '){window.location.href='customize.html?model=bus'}">
           <img src="https://images.unsplash.com/photo-1570125909232-eb263c188f7e?q=80&w=2071&auto=format&fit=crop" alt="Neon Transit">
           <h4>Mass Transit — Neon Bus</h4>
         </div>
 
         <!-- LINK 6: Cyber Hauler (Truck) -->
-        <div class="swiper-slide" onclick="window.location.href='customize.html?model=hauler'">
+        <div class="swiper-slide" role="link" tabindex="0" onclick="window.location.href='customize.html?model=hauler'" onkeydown="if(event.key==='Enter'||event.key===' '){window.location.href='customize.html?model=hauler'}">
           <img src="https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=2070&auto=format&fit=crop" alt="Cyber Hauler">
           <h4>Logistics — Cyber Hauler</h4>
         </div>
@@ -259,7 +322,7 @@
 
   <!-- SCRIPTS -->
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-  <script>AOS.init({duration:1200});</script>
+  <script>const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; AOS.init({duration: reduceMotion ? 0 : 1200, disable: reduceMotion});</script>
   <script src="https://unpkg.com/swiper@9/swiper-bundle.min.js"></script>
   <script>
     // --- UPDATED SWIPER CONFIG (AUTOPLAY) ---
@@ -267,7 +330,7 @@
       slidesPerView: 1, 
       spaceBetween: 30,
       loop: true, // Infinite Scroll
-      autoplay: {
+      autoplay: reduceMotion ? false : {
         delay: 2500, // 2.5 seconds per slide
         disableOnInteraction: false,
       },

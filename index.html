@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Velonix Customs | Cyberpunk Night Edition</title>
+  <meta name="description" content="Velonix Customs engineers expressive, futuristic vehicle builds through a cinematic digital configurator.">
   
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/swiper@9/swiper-bundle.min.css" />
@@ -238,6 +239,81 @@
     footer h3 { color: #fff; margin-bottom: 15px; }
     footer p { margin: 5px 0; }
   </style>
+  <style>
+    :root {
+      --cyan: #5ff7ff;
+      --gold: #f7c95c;
+      --ink: #070812;
+      --panel: rgba(15, 16, 31, .78);
+      --muted: #a9abc5;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background:
+        radial-gradient(circle at 15% 10%, rgba(188,19,254,.16), transparent 30rem),
+        radial-gradient(circle at 90% 70%, rgba(95,247,255,.08), transparent 28rem),
+        var(--ink);
+      line-height: 1.5;
+    }
+    body::after {
+      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1; opacity: .22;
+      background-image: radial-gradient(rgba(95,247,255,.55) 1px, transparent 1px);
+      background-size: 42px 42px; animation: drift 24s linear infinite;
+    }
+    @keyframes drift { to { background-position: 42px 84px; } }
+    header { padding: 18px clamp(20px, 6vw, 88px); border-bottom-color: rgba(95,247,255,.35); }
+    header h1 { font-size: clamp(1.1rem, 2vw, 1.55rem); }
+    nav { gap: clamp(12px, 2vw, 28px); }
+    nav a { color: #e8e8f4; font-size: .82rem; }
+    nav a:focus-visible, .btn-primary:focus-visible, .swiper-slide:focus-visible {
+      outline: 2px solid var(--cyan); outline-offset: 4px;
+    }
+    .hero {
+      min-height: 94vh; height: auto; padding: 150px 6% 110px;
+      background: linear-gradient(110deg, rgba(4,5,14,.9), rgba(9,5,21,.5)), url('front.png') center/cover no-repeat;
+      isolation: isolate;
+    }
+    .hero::before {
+      content: ""; position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(90deg, rgba(95,247,255,.08) 1px, transparent 1px), linear-gradient(rgba(188,19,254,.08) 1px, transparent 1px);
+      background-size: 80px 80px; mask-image: linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent);
+      pointer-events: none;
+    }
+    .hero h2 { max-width: 900px; font-size: clamp(2.2rem, 7vw, 5.8rem); line-height: 1.05; letter-spacing: .05em; }
+    .hero h2::first-line { color: #fff; }
+    .hero p { max-width: 680px; padding: 18px 22px; color: #dfe1f1; background: rgba(5,5,15,.62); border: 1px solid rgba(95,247,255,.2); box-shadow: 0 0 40px rgba(188,19,254,.12); }
+    .hero .eyebrow { position: relative; z-index: 2; color: var(--cyan); text-transform: uppercase; letter-spacing: .3em; font-size: .75rem; margin-bottom: 18px; }
+    .hero .btn-primary { display: inline-block; text-decoration: none; margin-top: 28px; }
+    .btn-primary { border-color: var(--cyan); color: var(--cyan); border-radius: 999px; padding: 14px 30px; }
+    .btn-primary:hover { background: var(--cyan); color: #071018; box-shadow: 0 0 28px rgba(95,247,255,.65); }
+    section { padding: clamp(72px, 10vw, 125px) 6%; position: relative; }
+    section h2 { font-size: clamp(1.7rem, 4vw, 3rem); margin-bottom: 20px; }
+    .about p, .feature-card, .swiper-slide { background: var(--panel); border-color: rgba(188,19,254,.25); backdrop-filter: blur(12px); }
+    .about p { border-left-color: var(--cyan); max-width: 900px; }
+    #gallery { background: rgba(3,4,12,.72); }
+    .swiper-slide { transition: transform .35s ease, border-color .35s ease, box-shadow .35s ease; cursor: pointer; }
+    .swiper-slide:hover { border-color: var(--cyan); box-shadow: 0 16px 40px rgba(95,247,255,.14); transform: translateY(-8px); }
+    .swiper-slide img { filter: saturate(.8) contrast(1.08); transition: transform .5s ease, filter .5s ease; }
+    .swiper-slide:hover img { transform: scale(1.05); filter: saturate(1.15) contrast(1.1); }
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); max-width: 1120px; margin: auto; }
+    .feature-card { width: auto; min-height: 190px; text-align: left; padding: 30px; }
+    .feature-card::before { content: "///"; color: var(--gold); display: block; font-family: Orbitron; font-size: .75rem; letter-spacing: .2em; margin-bottom: 18px; }
+    .feature-card h3 { font-size: 1.1rem; }
+    .feature-card p { color: var(--muted); }
+    #customize { background: linear-gradient(135deg, rgba(188,19,254,.12), rgba(95,247,255,.06)); }
+    #customize p { max-width: 650px; margin: 0 auto; color: var(--muted) !important; }
+    footer { padding: 65px 6%; color: var(--muted); }
+    footer h3 { color: #fff; }
+    @media (max-width: 700px) {
+      header { align-items: flex-start; gap: 14px; flex-direction: column; }
+      nav { gap: 10px 15px; }
+      nav a { font-size: .75rem; }
+      .hero { padding-top: 180px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
 </head>
 <body>
 
@@ -255,10 +331,11 @@
 
   <section class="hero" data-aos="fade-up">
     <div class="neon-grid"></div>
+    <span class="eyebrow">Vehicle systems / 01 — online</span>
     <h2>Welcome to Velonix Customs</h2>
     <p>Transforming every vehicle into a masterpiece — from cars and bikes to trucks and electric beasts. Precision, power, and creativity define our craft.</p>
    <!-- Update the href to point to your new garage page -->
-<a href="Garage.html"><button class="btn-primary">Explore the Garage</button></a>
+<a class="btn-primary" href="Garage.html">Explore the Garage <span aria-hidden="true">↗</span></a>
   </section>
 
   <section id="about" class="about" data-aos="fade-up">
@@ -273,31 +350,32 @@
     <div class="swiper">
       <div class="swiper-wrapper">
         <!-- LINK 1: Default Garage (No specific model) -->
-        <div class="swiper-slide" onclick="window.location.href='customize.html'" style="cursor: pointer;">
+        <div class="swiper-slide" role="link" tabindex="0" onclick="window.location.href='customize.html'" onkeydown="if(event.key==='Enter'||event.key===' '){window.location.href='customize.html'}">
           <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=2070&auto=format&fit=crop" alt="Main HQ">
           <h4>Velonix Main HQ</h4>
         </div>
         
         <!-- LINK 2: Spectre (Sports Car) -->
-        <div class="swiper-slide" onclick="window.location.href='customize.html?model=spectre'" style="cursor: pointer;">
+        <div class="swiper-slide" role="link" tabindex="0" onclick="window.location.href='customize.html?model=spectre'" onkeydown="if(event.key==='Enter'||event.key===' '){window.location.href='customize.html?model=spectre'}">
           <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2070&auto=format&fit=crop" alt="Spectre">
           <h4>Street Racer — Spectre</h4>
         </div>
 
         <!-- LINK 3: Vortex (Hyper Car) -->
-        <div class="swiper-slide" onclick="window.location.href='customize.html?model=vortex'" style="cursor: pointer;">
-          <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop" alt="Vortex">
+        <div class="swiper-slide" role="link" tabindex="0" onclick="window.location.href='customize.html?model=vortex'" onkeydown="if(event.key==='Enter'||event.key===' '){window.location.href='customize.html?model=vortex'}">
+          <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=2070&auto=format&fit=crop" alt="Red Vortex hypercar">
           <h4>Hyper Velocity — Vortex</h4>
         </div>
 
         <!-- LINK 4: Behemoth (SUV/Truck) -->
-        <div class="swiper-slide" onclick="window.location.href='customize.html?model=behemoth'" style="cursor: pointer;">
+        <div class="swiper-slide" role="link" tabindex="0" onclick="window.location.href='customize.html?model=behemoth'" onkeydown="if(event.key==='Enter'||event.key===' '){window.location.href='customize.html?model=behemoth'}">
           <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop" alt="Behemoth">
           <h4>Heavy Duty — Behemoth</h4>
         </div>
       </div>
       <div class="swiper-pagination"></div>
     </div>
+  </section>
 
   <section id="features" data-aos="fade-up">
     <h2>Futuristic Features</h2>
@@ -324,7 +402,8 @@
   <section id="customize" data-aos="fade-up">
     <h2>Start Your Custom Build</h2>
     <p style="margin-bottom:30px; font-size:1.2rem; color:#ccc;">Choose your vehicle type, style, and upgrades — let Velonix bring your dream machine to life.</p>
-   <a href="customize.html"><button class="btn-primary">Start Customizing</button></a>
+   <a class="btn-primary" href="customize.html">Start Customizing <span aria-hidden="true">↗</span></a>
+  </section>
 
   <footer id="contact" data-aos="fade-up">
     <h3>Contact Velonix Customs</h3>
@@ -336,7 +415,7 @@
   </footer>
 
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-  <script>AOS.init({duration:1200});</script>
+  <script>const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; AOS.init({duration: reduceMotion ? 0 : 1200, disable: reduceMotion});</script>
 
   <script src="https://unpkg.com/vanilla-tilt"></script>
   <script>
@@ -351,7 +430,7 @@
       slidesPerView:1,
       spaceBetween:30,
       pagination:{el:'.swiper-pagination',clickable:true},
-      autoplay:{delay:3000,disableOnInteraction:false},
+      autoplay: reduceMotion ? false : {delay:3000,disableOnInteraction:false},
       breakpoints:{
         768:{slidesPerView:2},
         1200:{slidesPerView:3}
