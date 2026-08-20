@@ -280,6 +280,34 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
     }
+    .inspection-panel {
+      position: absolute; top: 58px; right: 24px; width: min(310px, calc(100% - 48px));
+      z-index: 25; padding: 16px; border: 1px solid rgba(95,247,255,.4);
+      border-radius: 12px; background: rgba(7,8,18,.86); backdrop-filter: blur(14px);
+      box-shadow: 0 0 24px rgba(95,247,255,.1); pointer-events: auto;
+    }
+    .inspection-kicker { color: var(--cyan); font: 600 .65rem Orbitron, sans-serif; letter-spacing: .14em; }
+    .inspection-panel h3 { margin: 4px 0 5px; color: #fff; font-size: 1.05rem; }
+    .inspection-panel p { color: var(--muted); font-size: .82rem; }
+    .inspection-spec { margin-top: 8px; color: var(--gold) !important; font-size: .76rem !important; }
+    .part-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 12px; }
+    .part-btn {
+      border: 1px solid rgba(255,255,255,.16); border-radius: 7px; background: rgba(255,255,255,.05);
+      color: #ddd; padding: 7px 4px; font: 600 .66rem Rajdhani, sans-serif; cursor: pointer;
+    }
+    .part-btn:hover, .part-btn.active { color: var(--cyan); border-color: var(--cyan); background: rgba(95,247,255,.1); }
+    .part-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+    .inspection-action {
+      display: inline-flex; margin-top: 10px; border: 1px solid rgba(247,201,92,.45); border-radius: 999px;
+      color: var(--gold); background: transparent; padding: 6px 10px; cursor: pointer; font: 600 .68rem Orbitron, sans-serif;
+    }
+    .inspection-action:hover { background: rgba(247,201,92,.1); }
+    .control-section[hidden] { display: none; }
+    .compatibility-note { grid-column: 1 / -1; color: var(--muted); font-size: .78rem; }
+    .option-card small { display: block; color: var(--muted); font-size: .68rem; margin-top: 4px; }
+    @media (max-width: 700px) {
+      .inspection-panel { top: 48px; right: 14px; width: min(300px, calc(100% - 28px)); }
+    }
   </style>
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -297,6 +325,14 @@
       <div class="holo-overlay"></div>
       <div class="scan-line"></div>
       <div id="canvas-container"></div>
+      <aside class="inspection-panel" aria-live="polite">
+        <div class="inspection-kicker">PART INSPECTION</div>
+        <h3 id="inspectionName">Vehicle body</h3>
+        <p id="inspectionDescription">Select a holographic component to inspect its construction and compatible controls.</p>
+        <p class="inspection-spec" id="inspectionSpec">Click the model or use the inspection buttons.</p>
+        <div class="part-list" id="inspectionPartList" aria-label="Inspectable vehicle parts"></div>
+        <button class="inspection-action" id="inspectionControlButton" type="button">OPEN COMPATIBLE CONTROL</button>
+      </aside>
       
       <div class="stats-container">
         <h4 id="modelNameDisplay">Analyzing...</h4>
@@ -321,23 +357,38 @@
         <h2 class="total-price" id="totalPrice">$0</h2>
       </div>
 
-      <div class="control-section">
+      <div class="control-section" id="modelSection">
         <div class="section-title">1. Select Hologram Model</div>
         <div class="options-grid" id="modelList"></div>
       </div>
 
-      <div class="control-section">
-        <div class="section-title">2. Paint Calibration</div>
+      <div class="control-section" id="paintSection">
+        <div class="section-title">2. Body Paint</div>
         <div class="color-grid" id="colorList"></div>
       </div>
 
-      <div class="control-section">
-        <div class="section-title">3. Wheel Systems</div>
+      <div class="control-section" id="doorSection">
+        <div class="section-title">3. Door Finish</div>
+        <div class="options-grid" id="doorList"></div>
+      </div>
+
+      <div class="control-section" id="windowSection">
+        <div class="section-title">4. Window Tint</div>
+        <div class="options-grid" id="windowList"></div>
+      </div>
+
+      <div class="control-section" id="wheelSection">
+        <div class="section-title">5. Wheel Systems</div>
         <div class="options-grid" id="wheelList"></div>
       </div>
 
-      <div class="control-section">
-        <div class="section-title">4. Power Core</div>
+      <div class="control-section" id="lightingSection">
+        <div class="section-title">6. Lighting &amp; Underglow</div>
+        <div class="options-grid" id="lightingList"></div>
+      </div>
+
+      <div class="control-section" id="powertrainSection">
+        <div class="section-title">7. Powertrain &amp; Turbo</div>
         <div class="options-grid" id="engineList"></div>
       </div>
 
@@ -780,6 +831,356 @@
     function finishBuild() {
         alert(`Fabrication Initiated for: ${state.model.name}\nTotal: $${(state.model.price + state.color.price + state.wheel.price + state.engine.price).toLocaleString()}`);
     }
+  </script>
+  <script>
+  (() => {
+    const paintCatalog = {
+      purple: { id: 'purple', name: 'Neon Purple', hex: 0xbc13fe, price: 2200 },
+      crimson: { id: 'crimson', name: 'Plasma Red', hex: 0xff234f, price: 2200 },
+      cyan: { id: 'cyan', name: 'Cyber Cyan', hex: 0x00e8ff, price: 2400 },
+      green: { id: 'green', name: 'Toxic Green', hex: 0x5dff42, price: 2600 },
+      gold: { id: 'gold', name: 'Auric Gold', hex: 0xffd447, price: 9500 },
+      black: { id: 'black', name: 'Void Black', hex: 0x171923, price: 0 },
+      white: { id: 'white', name: 'Ice White', hex: 0xf2f6ff, price: 1200 }
+    };
+    const wheelCatalog = {
+      street: { id: 'street', name: 'Street Forged', price: 0, icon: 'fa-circle', spec: 'Cast alloy, 19 in' },
+      aero: { id: 'aero', name: 'Aero Turbine', price: 5200, icon: 'fa-fan', spec: 'Low-drag forged aero' },
+      centerlock: { id: 'centerlock', name: 'Centerlock Track', price: 11800, icon: 'fa-bullseye', spec: 'Lightweight motorsport set' },
+      allTerrain: { id: 'allTerrain', name: 'All-Terrain Beadlock', price: 7600, icon: 'fa-mountain', spec: 'Reinforced off-road sidewall' },
+      heavy: { id: 'heavy', name: 'Heavy-Duty Steel', price: 2800, icon: 'fa-circle-notch', spec: 'Load-rated commercial steel' },
+      transit: { id: 'transit', name: 'Transit Efficiency', price: 1800, icon: 'fa-bus', spec: 'Low-rolling-resistance set' },
+      spoke: { id: 'spoke', name: 'Performance Spoke', price: 2400, icon: 'fa-certificate', spec: 'Lightweight 17 in spoke' },
+      disc: { id: 'disc', name: 'Solid Disc', price: 4200, icon: 'fa-compact-disc', spec: 'Aero disc cover' }
+    };
+    const option = (id, name, price, icon, description, extra = {}) => ({ id, name, price, icon, description, ...extra });
+    const modelProfiles = [
+      {
+        id: 'spectre', name: 'Velonix Spectre', type: 'sport', basePrice: 92000, icon: 'fa-bolt',
+        stats: { speed: 88, acc: 91, handling: 84 }, dimensions: { length: 4.5, width: 2, height: 1.3 },
+        paints: ['purple', 'crimson', 'cyan', 'black', 'white'], wheels: ['street', 'aero', 'centerlock'],
+        doors: [option('satin', 'Satin Alloy', 0, 'fa-door-closed', 'Factory satin door skins'), option('carbon', 'Carbon Weave', 4800, 'fa-layer-group', 'Lightweight forged-carbon outer panels'), option('chrome', 'Chrome Edge', 3200, 'fa-gem', 'Polished edge and handle treatment')],
+        tints: [option('clear', 'Optical Clear', 0, 'fa-window-maximize', 'High-clarity laminated glass'), option('smoke', 'Smoke 35', 900, 'fa-cloud', 'Moderate heat and glare reduction'), option('privacy', 'Privacy 15', 1500, 'fa-eye-slash', 'Deep privacy laminate')],
+        lights: [option('halo', 'Halo Matrix', 0, 'fa-lightbulb', 'Adaptive LED headlamps'), option('laser', 'Laser Trace', 4200, 'fa-sun', 'High-output road tracing with cyan signature'), option('underglow', 'Spectrum Underglow', 2800, 'fa-rainbow', 'Chassis RGB light rails', { glow: true, lightColor: 0x00e8ff })],
+        powertrains: [option('i4Turbo', 'Inline-4 Turbo', 0, 'fa-gears', '2.0 L-class turbocharged four-cylinder', { boost: 0, handling: 0 }), option('v6Twin', 'V6 Twin-Turbo', 12800, 'fa-fire', '3.0 L-class twin-turbo performance V6', { boost: 8, acc: 5 }), option('dualMotor', 'Electric Dual-Motor', 18500, 'fa-bolt', 'All-wheel-drive dual-motor electric system', { boost: 11, acc: 8 })]
+      },
+      {
+        id: 'vortex', name: 'Apex Vortex', type: 'hyper', basePrice: 285000, icon: 'fa-jet-fighter',
+        stats: { speed: 100, acc: 98, handling: 95 }, dimensions: { length: 4.8, width: 2.1, height: 1.15 },
+        paints: ['purple', 'gold', 'crimson', 'white', 'black'], wheels: ['centerlock', 'aero', 'street'],
+        doors: [option('carbon', 'Carbon Monocoque', 0, 'fa-layer-group', 'Exposed composite door shell'), option('satin', 'Satin Titanium', 6200, 'fa-door-closed', 'Satin titanium-effect outer finish')],
+        tints: [option('clear', 'Optical Clear', 0, 'fa-window-maximize', 'Track-legal clear laminate'), option('smoke', 'Smoke 35', 1200, 'fa-cloud', 'Heat-rejecting smoke laminate')],
+        lights: [option('laser', 'Laser Trace', 0, 'fa-sun', 'Adaptive laser-assisted signature lamps'), option('halo', 'Halo Matrix', 3600, 'fa-lightbulb', 'Pixel-controlled LED system'), option('underglow', 'Spectrum Underglow', 3200, 'fa-rainbow', 'RGB aero sill lighting', { glow: true, lightColor: 0xbc13fe })],
+        powertrains: [option('v8Twin', 'V8 Twin-Turbo', 0, 'fa-fire', '4.0 L-class twin-turbo performance V8', { boost: 0, acc: 0 }), option('v6Hybrid', 'V6 Hybrid Assist', 24500, 'fa-bolt', 'Twin-turbo V6 with electric axle assist', { boost: 5, acc: 7 }), option('triMotor', 'Electric Tri-Motor', 36000, 'fa-atom', 'Three-motor torque-vectoring electric system', { boost: 10, acc: 9 })]
+      },
+      {
+        id: 'behemoth', name: 'Cyberdyne Behemoth', type: 'suv', basePrice: 118000, icon: 'fa-truck-monster',
+        stats: { speed: 65, acc: 61, handling: 89 }, dimensions: { length: 5, width: 2.2, height: 1.9 },
+        paints: ['black', 'green', 'white', 'crimson', 'gold'], wheels: ['allTerrain', 'heavy', 'aero'],
+        doors: [option('armor', 'Armored Utility', 8200, 'fa-shield-halved', 'Reinforced impact-resistant door skins'), option('body', 'Body Color', 0, 'fa-door-closed', 'Paint-matched standard doors'), option('carbon', 'Carbon Lite', 5400, 'fa-layer-group', 'Composite panels for reduced mass')],
+        tints: [option('privacy', 'Privacy 15', 0, 'fa-eye-slash', 'Factory privacy glass'), option('smoke', 'Smoke 35', 850, 'fa-cloud', 'Heat-rejecting smoke laminate'), option('clear', 'Optical Clear', 650, 'fa-window-maximize', 'Clear utility glazing')],
+        lights: [option('rally', 'Rally Beam', 0, 'fa-lightbulb', 'Dust-sealed LED light bar'), option('matrix', 'Matrix Trail', 3600, 'fa-sun', 'Adaptive trail illumination'), option('underglow', 'Terrain Underglow', 2600, 'fa-rainbow', 'Rock-aware chassis light rails', { glow: true, lightColor: 0x5dff42 })],
+        powertrains: [option('v6Twin', 'V6 Twin-Turbo', 0, 'fa-fire', '3.5 L-class twin-turbo utility V6', { boost: 0, acc: 0 }), option('v8Twin', 'V8 Twin-Turbo', 14500, 'fa-fire-flame-curved', '5.0 L-class twin-turbo torque V8', { boost: 7, acc: 4 }), option('dieselTurbo', 'Turbo Diesel', 9800, 'fa-gas-pump', '3.0 L-class turbo diesel with high low-end torque', { boost: 3, acc: 1, handling: 2 }), option('dualMotor', 'Electric Dual-Motor', 22500, 'fa-bolt', 'Dual-motor all-wheel-drive utility system', { boost: 8, acc: 7 })]
+      },
+      {
+        id: 'hauler', name: 'Cyber Hauler', type: 'semi', basePrice: 175000, icon: 'fa-trailer',
+        stats: { speed: 58, acc: 42, handling: 68 }, dimensions: { length: 6.4, width: 2.5, height: 2.8 },
+        paints: ['black', 'white', 'cyan', 'gold'], wheels: ['heavy', 'aero'],
+        doors: [option('work', 'Fleet Work', 0, 'fa-door-closed', 'Durable fleet-grade door finish'), option('satin', 'Satin Cab', 2600, 'fa-gem', 'Satin cab trim and handles')],
+        tints: [option('clear', 'Optical Clear', 0, 'fa-window-maximize', 'Wide-visibility commercial glass'), option('privacy', 'Privacy 20', 1100, 'fa-eye-slash', 'Glare reduction for long-haul routes')],
+        lights: [option('fleet', 'Fleet Marker Set', 0, 'fa-lightbulb', 'Road-legal marker and headlamp package'), option('matrix', 'Adaptive Haul Beam', 2400, 'fa-sun', 'Adaptive long-range LED beam'), option('underglow', 'Chassis Underglow', 1800, 'fa-rainbow', 'Low-intensity safety light rails', { glow: true, lightColor: 0xf7c95c })],
+        powertrains: [option('dieselTurbo', 'Turbo Diesel', 0, 'fa-gas-pump', '12 L-class turbo diesel heavy-haul system', { boost: 0, acc: 0 }), option('dieselHybrid', 'Diesel-Electric Assist', 18500, 'fa-bolt', 'Turbo diesel with regenerative axle assist', { boost: 5, acc: 5 }), option('v8Twin', 'V8 Twin-Turbo', 12500, 'fa-fire', '8 L-class twin-turbo vocational V8', { boost: 4, acc: 2 })]
+      },
+      {
+        id: 'bus', name: 'Neon Transit', type: 'bus', basePrice: 240000, icon: 'fa-bus',
+        stats: { speed: 50, acc: 34, handling: 59 }, dimensions: { length: 8, width: 2.6, height: 3.1 },
+        paints: ['white', 'cyan', 'purple', 'gold', 'black'], wheels: ['transit', 'heavy'],
+        doors: [option('transit', 'Transit Fold', 0, 'fa-door-open', 'Wide, low-floor passenger doors'), option('panoramic', 'Panoramic Entry', 4600, 'fa-door-open', 'Glass-forward entry door package')],
+        tints: [option('clear', 'Passenger Clear', 0, 'fa-window-maximize', 'High-visibility passenger glass'), option('privacy', 'Solar Privacy', 3800, 'fa-eye-slash', 'Solar-control privacy glazing')],
+        lights: [option('transit', 'Route LED', 0, 'fa-lightbulb', 'Route-safe exterior LED package'), option('matrix', 'Matrix Transit', 5200, 'fa-sun', 'Adaptive headlamps and cornering lamps'), option('underglow', 'Platform Underglow', 2400, 'fa-rainbow', 'Boarding-zone light rails', { glow: true, lightColor: 0x00e8ff })],
+        powertrains: [option('dualMotor', 'Electric Dual-Motor', 0, 'fa-bolt', 'Battery-electric dual-motor transit system', { boost: 0, acc: 0 }), option('dieselTurbo', 'Turbo Diesel', 19000, 'fa-gas-pump', '6.7 L-class turbo diesel transit system', { boost: 2, acc: 2 }), option('fuelCell', 'Hydrogen Fuel-Cell', 42000, 'fa-atom', 'Fuel-cell electric drive with battery buffer', { boost: 4, acc: 4 })]
+      },
+      {
+        id: 'titan', name: 'Titan Edge Bike', type: 'bike', basePrice: 52000, icon: 'fa-motorcycle',
+        stats: { speed: 94, acc: 91, handling: 98 }, dimensions: { length: 2.5, width: .9, height: 1.5 },
+        paints: ['purple', 'crimson', 'cyan', 'black'], wheels: ['spoke', 'disc', 'aero'],
+        doors: [], tints: [option('clear', 'Clear Visor', 0, 'fa-window-maximize', 'Optical-clear rider visor'), option('smoke', 'Smoke Visor', 380, 'fa-cloud', 'Tinted aerodynamic visor')],
+        lights: [option('halo', 'Halo Headlamp', 0, 'fa-lightbulb', 'Adaptive LED motorcycle headlamp'), option('track', 'Track Beam', 1200, 'fa-sun', 'Focused track beam'), option('underglow', 'Frame Underglow', 900, 'fa-rainbow', 'Frame-mounted RGB light rail', { glow: true, lightColor: 0xbc13fe })],
+        powertrains: [option('twinTurbo', 'Parallel-Twin Turbo', 0, 'fa-fire', '900 cc-class turbocharged parallel twin', { boost: 0, acc: 0 }), option('electric', 'Electric Mid-Drive', 6800, 'fa-bolt', 'High-torque electric mid-drive system', { boost: 5, acc: 7 })]
+      }
+    ];
+
+    const partInfo = {
+      body: { name: 'Vehicle body', description: 'Primary structural shell with aerodynamic or utility-focused panels.', control: 'paintSection' },
+      doors: { name: 'Doors & access', description: 'Outer access panels and hinges tuned for the selected vehicle class.', control: 'doorSection' },
+      windows: { name: 'Cabin windows', description: 'Laminated glazing with visibility, heat and privacy characteristics.', control: 'windowSection' },
+      wheels: { name: 'Wheel systems', description: 'Tire and rim package affecting mass, grip and visual stance.', control: 'wheelSection' },
+      lights: { name: 'Lighting array', description: 'Headlamps, markers and optional chassis illumination.', control: 'lightingSection' },
+      powertrain: { name: 'Powertrain bay', description: 'Conceptual propulsion hardware; labels describe architecture, not a specific manufacturer component.', control: 'powertrainSection' }
+    };
+
+    let scene, camera, renderer, controls, carGroup, selectedPart = 'body';
+    let raycaster, pointerDown = null;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const state = { model: modelProfiles[0], color: null, door: null, tint: null, wheel: null, lighting: null, powertrain: null };
+
+    const getOptions = (kind) => {
+      if (kind === 'color') return state.model.paints.map(id => paintCatalog[id]);
+      if (kind === 'wheel') return state.model.wheels.map(id => wheelCatalog[id]);
+      if (kind === 'door') return state.model.doors;
+      if (kind === 'tint') return state.model.tints;
+      if (kind === 'lighting') return state.model.lights;
+      return state.model.powertrains;
+    };
+    const money = (value) => '$' + value.toLocaleString();
+    const compatibleOrFirst = (options, current) => options.find(item => item.id === current?.id) || options[0] || null;
+
+    function syncSelections() {
+      state.color = compatibleOrFirst(getOptions('color'), state.color);
+      state.wheel = compatibleOrFirst(getOptions('wheel'), state.wheel);
+      state.door = compatibleOrFirst(getOptions('door'), state.door);
+      state.tint = compatibleOrFirst(getOptions('tint'), state.tint);
+      state.lighting = compatibleOrFirst(getOptions('lighting'), state.lighting);
+      state.powertrain = compatibleOrFirst(getOptions('powertrain'), state.powertrain);
+    }
+
+    function material(color, opacity = 1, transparent = false) {
+      return new THREE.MeshPhongMaterial({ color, transparent, opacity, shininess: 95, side: THREE.DoubleSide });
+    }
+    function partGroup(id) {
+      const group = new THREE.Group();
+      group.userData.part = id;
+      return group;
+    }
+    function addMesh(group, geometry, mat, position, rotation = [0, 0, 0], scale = [1, 1, 1]) {
+      const mesh = new THREE.Mesh(geometry, mat);
+      mesh.position.set(...position); mesh.rotation.set(...rotation); mesh.scale.set(...scale);
+      group.add(mesh); return mesh;
+    }
+    function addWindow(group, geometry, position, rotation = [0, 0, 0]) {
+      const tintStyle = { clear: [0x28445a, .5], smoke: [0x182b42, .72], privacy: [0x0b1220, .88] }[state.tint?.id] || [0x15283c, .72];
+      return addMesh(group, geometry, material(tintStyle[0], tintStyle[1], true), position, rotation);
+    }
+    function addWheel(wheelGroup, radius, position, finishColor) {
+      const tire = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, .32, 24), material(0x11131b));
+      tire.rotation.x = Math.PI / 2;
+      const rimMat = material(finishColor, 1);
+      let rimGeometry = new THREE.CylinderGeometry(radius * .63, radius * .63, .35, state.wheel.id === 'centerlock' ? 12 : 20);
+      if (state.wheel.id === 'aero' || state.wheel.id === 'disc') rimGeometry = new THREE.CylinderGeometry(radius * .72, radius * .72, .36, 32);
+      if (state.wheel.id === 'allTerrain') rimGeometry = new THREE.TorusGeometry(radius * .62, .09, 10, 16);
+      const rim = new THREE.Mesh(rimGeometry, rimMat); rim.rotation.x = Math.PI / 2;
+      wheelGroup.add(tire, rim);
+      if (state.wheel.id === 'spoke') {
+        for (let i = 0; i < 5; i++) addMesh(wheelGroup, new THREE.BoxGeometry(radius * .8, .035, .06), rimMat, [0, 0, 0], [0, i * Math.PI / 5, 0]);
+      }
+    }
+
+    function buildCar3D() {
+      if (carGroup) scene.remove(carGroup);
+      carGroup = new THREE.Group();
+      const { type, dimensions } = state.model;
+      const paint = state.color.hex;
+      const bodyMat = material(paint);
+      const doorColor = { carbon: 0x222a38, armor: 0x4e5664, chrome: 0xbac7d5, satin: paint, body: paint, work: 0x394253, transit: paint, panoramic: paint }[state.door?.id] || paint;
+      const doorMat = material(doorColor);
+      const trimMat = material(0x171b28);
+      const lightColor = { laser: 0xffd447, rally: 0xff234f, track: 0x5ff7ff, matrix: 0x5ff7ff, halo: 0xbc13fe }[state.lighting.id] || 0x5ff7ff;
+      const accentMat = material(state.lighting.lightColor || lightColor);
+      const body = partGroup('body');
+      const doors = partGroup('doors');
+      const windows = partGroup('windows');
+      const wheels = partGroup('wheels');
+      const lights = partGroup('lights');
+      const powertrain = partGroup('powertrain');
+
+      if (type === 'bike') {
+        addMesh(body, new THREE.BoxGeometry(1.5, .35, .55), bodyMat, [0, .95, 0], [0, 0, -.08]);
+        addMesh(body, new THREE.ConeGeometry(.42, .85, 6), bodyMat, [.45, 1.05, 0], [0, 0, Math.PI / 2]);
+        addMesh(windows, new THREE.BoxGeometry(.42, .25, .5), material(0x142b45, .78, true), [.08, 1.28, 0], [0, 0, -.15]);
+        addMesh(doors, new THREE.BoxGeometry(.7, .08, .58), doorMat, [-.25, .86, 0]);
+        [-.82, .82].forEach(x => { const wheel = partGroup('wheels'); addWheel(wheel, .42, [x, .46, 0], state.wheel.id === 'disc' ? paint : 0xadb7c8); wheels.add(wheel); });
+        addMesh(lights, new THREE.SphereGeometry(.13, 16, 10), accentMat, [.85, 1.08, 0]);
+        addMesh(body, new THREE.CylinderGeometry(.035, .035, .8, 10), trimMat, [.48, 1.45, 0], [0, 0, Math.PI / 2]);
+        addMesh(powertrain, new THREE.CylinderGeometry(.2, .2, .32, 16), material(state.powertrain.id === 'electric' ? 0x34d9ff : 0xd25b3e), [-.2, .82, 0], [Math.PI / 2, 0, 0]);
+      } else {
+        const tall = type === 'bus' ? 2.55 : type === 'semi' ? 2.1 : type === 'suv' ? 1.55 : 1.2;
+        const baseLength = type === 'semi' ? 2.7 : dimensions.length * .82;
+        addMesh(body, new THREE.BoxGeometry(baseLength, .72, dimensions.width), bodyMat, [0, .72, 0]);
+        if (type === 'semi') {
+          addMesh(body, new THREE.BoxGeometry(3.2, 2.25, dimensions.width * .96), material(0x273044), [-1.35, 1.72, 0]);
+          addMesh(body, new THREE.BoxGeometry(2.8, 1.9, dimensions.width * .92), bodyMat, [1.25, 1.55, 0]);
+        } else {
+          const cabinLength = type === 'bus' ? dimensions.length * .86 : dimensions.length * .48;
+          addMesh(body, new THREE.BoxGeometry(cabinLength, tall, dimensions.width * .9), bodyMat, [-.15, 1.35, 0], [0, 0, type === 'bus' ? 0 : -.04]);
+        }
+        const sideWindowLength = type === 'bus' ? .92 : type === 'semi' ? .95 : 1.25;
+        const windowY = type === 'bus' ? 1.72 : type === 'semi' ? 2.05 : 1.45;
+        const windowCount = type === 'bus' ? 6 : type === 'semi' ? 2 : 2;
+        for (let i = 0; i < windowCount; i++) {
+          const x = type === 'bus' ? -dimensions.length * .34 + i * dimensions.length * .13 : -.35 + i * .7;
+          addWindow(windows, new THREE.BoxGeometry(sideWindowLength / (type === 'bus' ? 2.1 : 1), .42, .035), [x, windowY, dimensions.width * .46]);
+          addWindow(windows, new THREE.BoxGeometry(sideWindowLength / (type === 'bus' ? 2.1 : 1), .42, .035), [x, windowY, -dimensions.width * .46]);
+        }
+        addWindow(windows, new THREE.BoxGeometry(.04, .48, dimensions.width * .58), [dimensions.length * .38, windowY, 0], [0, 0, 0]);
+        if (type !== 'bus' && type !== 'semi') {
+          [-1, 1].forEach(side => addMesh(doors, new THREE.BoxGeometry(1.15, .58, .05), doorMat, [0, .76, side * (dimensions.width / 2 + .02)]));
+        } else {
+          addMesh(doors, new THREE.BoxGeometry(.07, 1.35, dimensions.width * .5), doorMat, [dimensions.length * .38, 1.05, 0]);
+        }
+        const wheelRadius = type === 'bus' || type === 'semi' ? .62 : type === 'suv' ? .55 : .45;
+        const axleX = type === 'bus' ? [-2.5, 2.5] : type === 'semi' ? [-1.5, 1.55] : [-1.35, 1.35];
+        axleX.forEach(x => [-1, 1].forEach(side => {
+          const wheel = partGroup('wheels'); addWheel(wheel, wheelRadius, [x, wheelRadius, side * (dimensions.width / 2 + .08)], state.wheel.id === 'aero' ? 0x9fe9ff : 0xc5c9d7);
+          wheel.position.set(x, 0, side * (dimensions.width / 2 + .08)); wheels.add(wheel);
+        }));
+        addMesh(lights, new THREE.BoxGeometry(.12, .18, dimensions.width * .52), accentMat, [dimensions.length * .43, .68, 0]);
+        addMesh(lights, new THREE.BoxGeometry(.1, .12, dimensions.width * .55), material(0xff234f), [-dimensions.length * .43, .7, 0]);
+        addMesh(powertrain, new THREE.BoxGeometry(.85, .38, dimensions.width * .58), material(state.powertrain.id.includes('electric') || state.powertrain.id === 'dualMotor' || state.powertrain.id === 'triMotor' || state.powertrain.id === 'fuelCell' ? 0x26c9e8 : 0xb94b39), [dimensions.length * .28, .68, 0]);
+        if (type === 'bus') addMesh(body, new THREE.BoxGeometry(dimensions.length * .82, .06, dimensions.width * .98), trimMat, [0, 2.68, 0]);
+      }
+      carGroup.add(body, doors, windows, wheels, lights, powertrain);
+      const glowColor = state.lighting.glow ? state.lighting.lightColor : paint;
+      const underglow = new THREE.Mesh(new THREE.PlaneGeometry(Math.max(2, dimensions.length * .75), dimensions.width * .9), new THREE.MeshBasicMaterial({ color: glowColor, transparent: true, opacity: state.lighting.glow ? .35 : .12, side: THREE.DoubleSide }));
+      underglow.rotation.x = -Math.PI / 2; underglow.position.y = .035; carGroup.add(underglow);
+      scene.add(carGroup);
+      fitCamera();
+      highlightPart(selectedPart);
+    }
+
+    function fitCamera() {
+      const span = Math.max(state.model.dimensions.length, state.model.dimensions.height * 2.2, 3);
+      camera.position.set(span * 1.18, span * .72, span * 1.45);
+      controls.target.set(0, state.model.dimensions.height * .45, 0);
+      controls.maxDistance = span * 4; controls.update();
+    }
+    function highlightPart(partId) {
+      if (!carGroup) return;
+      carGroup.traverse(object => {
+        if (!object.isMesh || !object.material) return;
+        const materials = Array.isArray(object.material) ? object.material : [object.material];
+        materials.forEach(mat => {
+          if (mat.emissive) mat.emissive.setHex(0x000000);
+        });
+      });
+      carGroup.traverse(object => {
+        if (object.userData.part === partId) object.traverse(child => {
+          if (!child.isMesh || !child.material) return;
+          const materials = Array.isArray(child.material) ? child.material : [child.material];
+          materials.forEach(mat => { if (mat.emissive) mat.emissive.setHex(0x5ff7ff); });
+        });
+      });
+    }
+
+    function setupThree() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene(); scene.fog = new THREE.FogExp2(0x05050d, .025);
+      camera = new THREE.PerspectiveCamera(48, container.clientWidth / container.clientHeight, .1, 120);
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(container.clientWidth, container.clientHeight); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
+      container.appendChild(renderer.domElement);
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true; controls.enablePan = false; controls.autoRotate = !reduceMotion; controls.autoRotateSpeed = .7;
+      scene.add(new THREE.GridHelper(24, 24, 0xbc13fe, 0x202235));
+      scene.add(new THREE.HemisphereLight(0x9c8cff, 0x101018, 1.15));
+      const key = new THREE.PointLight(0x5ff7ff, 1.1, 40); key.position.set(5, 8, 5); scene.add(key);
+      const fill = new THREE.PointLight(0xbc13fe, .9, 30); fill.position.set(-5, 4, -4); scene.add(fill);
+      raycaster = new THREE.Raycaster();
+      renderer.domElement.addEventListener('pointerdown', event => { pointerDown = { x: event.clientX, y: event.clientY }; });
+      renderer.domElement.addEventListener('pointerup', event => {
+        if (!pointerDown || Math.hypot(event.clientX - pointerDown.x, event.clientY - pointerDown.y) > 6) return;
+        const rect = renderer.domElement.getBoundingClientRect();
+        const pointer = new THREE.Vector2(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1);
+        raycaster.setFromCamera(pointer, camera);
+        const hit = raycaster.intersectObjects(carGroup ? carGroup.children : [], true)[0];
+        let object = hit?.object;
+        while (object && !object.userData.part) object = object.parent;
+        if (object?.userData.part) selectPart(object.userData.part);
+      });
+      window.addEventListener('resize', () => {
+        camera.aspect = container.clientWidth / Math.max(container.clientHeight, 1); camera.updateProjectionMatrix(); renderer.setSize(container.clientWidth, container.clientHeight);
+      });
+      buildCar3D(); animate();
+    }
+    function animate() {
+      requestAnimationFrame(animate); controls.update();
+      if (carGroup && !reduceMotion) carGroup.position.y = Math.sin(Date.now() * .0018) * .035;
+      renderer.render(scene, camera);
+    }
+
+    function createCard(item, active, onClick) {
+      const div = document.createElement('div'); div.className = `option-card${active ? ' active' : ''}`;
+      div.setAttribute('role', 'button'); div.setAttribute('tabindex', '0'); div.setAttribute('aria-pressed', active ? 'true' : 'false');
+      div.innerHTML = `<i class="fas ${item.icon || 'fa-sliders'}"></i><span class="option-name">${item.name}</span><span class="option-cost">${item.price ? '+' + money(item.price) : 'INCLUDED'}</span>${item.description ? `<small>${item.description}</small>` : ''}`;
+      div.onclick = onClick; div.onkeydown = event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onClick(); } };
+      return div;
+    }
+    function renderOptionList(id, kind, setter) {
+      const container = document.getElementById(id); container.innerHTML = '';
+      const options = getOptions(kind);
+      if (!options.length) { container.innerHTML = '<div class="compatibility-note">Not applicable to this vehicle.</div>'; return; }
+      options.forEach(item => container.appendChild(createCard(item, state[kind].id === item.id, () => setter(item))));
+    }
+    function renderUI() {
+      const modelList = document.getElementById('modelList'); modelList.innerHTML = '';
+      modelProfiles.forEach(model => modelList.appendChild(createCard({ ...model, name: model.name, price: model.basePrice }, model.id === state.model.id, () => setModel(model))));
+      const colors = document.getElementById('colorList'); colors.innerHTML = '';
+      getOptions('color').forEach(color => {
+        const circle = document.createElement('div'); circle.className = `color-circle${state.color.id === color.id ? ' active' : ''}`;
+        circle.setAttribute('role', 'button'); circle.setAttribute('tabindex', '0'); circle.setAttribute('aria-label', `${color.name}, ${color.price ? money(color.price) : 'included'}`);
+        circle.title = `${color.name} — ${color.price ? '+' + money(color.price) : 'included'}`; circle.style.backgroundColor = '#' + color.hex.toString(16).padStart(6, '0');
+        circle.onclick = () => setColor(color); circle.onkeydown = event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setColor(color); } };
+        colors.appendChild(circle);
+      });
+      renderOptionList('doorList', 'door', setDoor); renderOptionList('windowList', 'tint', setTint); renderOptionList('wheelList', 'wheel', setWheel);
+      renderOptionList('lightingList', 'lighting', setLighting); renderOptionList('engineList', 'powertrain', setPowertrain);
+      renderParts(); updateStats(); updateInspection();
+    }
+    function setModel(model) { state.model = model; syncSelections(); selectedPart = 'body'; buildCar3D(); renderUI(); }
+    function setColor(value) { state.color = value; buildCar3D(); renderUI(); }
+    function setDoor(value) { state.door = value; buildCar3D(); renderUI(); }
+    function setTint(value) { state.tint = value; buildCar3D(); renderUI(); }
+    function setWheel(value) { state.wheel = value; buildCar3D(); renderUI(); }
+    function setLighting(value) { state.lighting = value; buildCar3D(); renderUI(); }
+    function setPowertrain(value) { state.powertrain = value; buildCar3D(); renderUI(); }
+
+    function totalPrice() {
+      return state.model.basePrice + [state.color, state.door, state.tint, state.wheel, state.lighting, state.powertrain].reduce((sum, item) => sum + (item?.price || 0), 0);
+    }
+    function updateStats() {
+      const power = state.powertrain || {}; const wheel = state.wheel || {};
+      const speed = Math.min(100, state.model.stats.speed + (power.boost || 0));
+      const acc = Math.min(100, state.model.stats.acc + (power.acc || Math.round((power.boost || 0) * .55)));
+      const handling = Math.min(100, state.model.stats.handling + (power.handling || 0) + (wheel.id === 'centerlock' || wheel.id === 'spoke' ? 2 : 0));
+      document.getElementById('totalPrice').textContent = money(totalPrice());
+      document.getElementById('modelNameDisplay').textContent = state.model.name;
+      [['barSpeed', 'statSpeedVal', speed], ['barAcc', 'statAccVal', acc], ['barHand', 'statHandVal', handling]].forEach(([bar, text, value]) => { document.getElementById(bar).style.width = `${value}%`; document.getElementById(text).textContent = Math.round(value); });
+    }
+    function getInspectableParts() { return state.model.type === 'bike' ? ['body', 'windows', 'wheels', 'lights', 'powertrain'] : Object.keys(partInfo); }
+    function renderParts() {
+      const list = document.getElementById('inspectionPartList'); list.innerHTML = '';
+      getInspectableParts().forEach(id => {
+        const button = document.createElement('button'); button.type = 'button'; button.className = `part-btn${id === selectedPart ? ' active' : ''}`; button.textContent = partInfo[id].name.replace('Vehicle ', '');
+        button.onclick = () => selectPart(id); list.appendChild(button);
+      });
+    }
+    function selectPart(id) { if (!getInspectableParts().includes(id)) return; selectedPart = id; highlightPart(id); renderParts(); updateInspection(); }
+    function updateInspection() {
+      const info = partInfo[selectedPart]; const current = selectedPart === 'body' ? state.color : selectedPart === 'doors' ? state.door : selectedPart === 'windows' ? state.tint : selectedPart === 'wheels' ? state.wheel : selectedPart === 'lights' ? state.lighting : state.powertrain;
+      document.getElementById('inspectionName').textContent = info.name;
+      document.getElementById('inspectionDescription').textContent = info.description;
+      document.getElementById('inspectionSpec').textContent = current ? `${current.name}: ${current.description || current.spec || 'Factory-compatible selection'}${current.price ? ` · ${money(current.price)}` : ' · included'}` : 'This vehicle has no compatible option for this part.';
+      const action = document.getElementById('inspectionControlButton'); action.hidden = !info.control; action.textContent = current ? `OPEN ${info.name.toUpperCase()} CONTROL` : 'CONTROL UNAVAILABLE'; action.onclick = () => document.getElementById(info.control)?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+    }
+    function finishBuild() { alert(`Fabrication Initiated for: ${state.model.name}\nPowertrain: ${state.powertrain.name}\nTotal: ${money(totalPrice())}`); }
+    window.finishBuild = finishBuild;
+
+    window.onload = () => {
+      const requested = new URLSearchParams(window.location.search).get('model')?.toLowerCase();
+      const requestedModel = modelProfiles.find(model => model.id === requested);
+      if (requestedModel) state.model = requestedModel;
+      syncSelections(); setupThree(); renderUI();
+    };
+  })();
   </script>
 </body>
 </html>
